@@ -40,12 +40,17 @@
    ========================================================== */
 *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 html,body{ height:100%; }
+html{ -webkit-text-size-adjust:100%; }
 body{
   background:var(--bg);
   color:var(--cream);
   font-family:var(--font-body);
   overflow:hidden;
   -webkit-font-smoothing:antialiased;
+  /* iOS Safari 100vh includes the address bar; use dvh where supported
+     so full-screen sections never get clipped under the browser chrome. */
+  min-height:100vh;
+  min-height:100dvh;
 }
 .hidden{ display:none !important; }
 button{ font-family:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
@@ -120,15 +125,19 @@ body.reduced-motion .grain-layer{ display:none; }
   background:#0B0A0C;
   text-align:center;
 }
+#pinScreen{ --pin-bg-image: none; }
 #pinScreen::before{
   content:"";
   position:absolute; inset:0;
-  background-image:url('REPLACE_WITH_COUPLE_PHOTO_URL.jpg');
+  background-image:var(--pin-bg-image);
   background-size:cover; background-position:center;
   filter:blur(22px) brightness(0.3);
   opacity:0.55;
   z-index:-1;
+  transition:opacity 0.6s ease;
 }
+/* Identity panel: custom PIN-screen background uploaded via Dashboard */
+#pinScreen.has-custom-bg::before{ opacity:0.7; }
 .pin-eyebrow{
   font-family:var(--font-mono); font-size:11px; letter-spacing:0.22em;
   text-transform:uppercase; color:var(--gold-dim); margin-bottom:18px;
@@ -358,16 +367,20 @@ body.reduced-motion .grain-layer{ display:none; }
    8. MUSEUM FLOOR PLAN NAVIGATION
    ========================================================== */
 #floorPlanToggle{
-  position:fixed; top:16px; right:16px; z-index:55;
+  position:fixed; top:calc(16px + env(safe-area-inset-top)); right:calc(16px + env(safe-area-inset-right)); z-index:55;
   width:38px; height:38px; border-radius:50%;
   background:rgba(23,21,26,0.7); border:1px solid var(--line);
   color:var(--gold); font-family:var(--font-mono); font-size:11px;
   display:none; align-items:center; justify-content:center;
   backdrop-filter:blur(6px);
+  /* 38px is under the 44px touch-target guideline — compensate with an invisible hit-area */
+}
+#floorPlanToggle::after{
+  content:""; position:absolute; inset:-4px; /* pads the tap target to ~46px without changing the visual size */
 }
 #floorPlanToggle.visible{ display:flex; }
 #floorPlan{
-  position:fixed; top:64px; right:16px; z-index:55;
+  position:fixed; top:calc(64px + env(safe-area-inset-top)); right:calc(16px + env(safe-area-inset-right)); z-index:55;
   background:rgba(23,21,26,0.9); border:1px solid var(--line);
   border-radius:10px; padding:14px; backdrop-filter:blur(8px);
   display:none; grid-template-columns:repeat(3, 34px); gap:8px;
@@ -391,7 +404,7 @@ body.reduced-motion .grain-layer{ display:none; }
 #museum{
   z-index:10;
   position:relative;
-  height:100vh; width:100vw;
+  height:100vh; height:100dvh; width:100vw;
   overflow-y:auto;
   display:none;
   -webkit-overflow-scrolling:touch;
@@ -505,7 +518,7 @@ body.reduced-motion .grain-layer{ display:none; }
   box-shadow:inset 0 0 60px rgba(0,0,0,0.4);
 }
 .scrap-item{
-  position:absolute; cursor:grab;
+  position:absolute; cursor:default;
   transition:transform 0.25s var(--ease-soft), box-shadow 0.25s ease;
   will-change:transform;
 }
@@ -672,8 +685,9 @@ body.reduced-motion .grain-layer{ display:none; }
 }
 #dashboard.active{ display:flex; }
 .dash-topbar{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  padding:calc(16px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 16px calc(20px + env(safe-area-inset-left));
+  border-bottom:1px solid var(--line);
 }
 .dash-topbar .brand{ font-family:var(--font-display); font-style:italic; font-size:18px; }
 .dash-body{ flex:1; display:flex; overflow:hidden; }
@@ -759,7 +773,7 @@ body.reduced-motion .grain-layer{ display:none; }
    11. MINI MUSIC PLAYER
    ========================================================== */
 #miniPlayer{
-  position:fixed; left:16px; bottom:16px; z-index:60;
+  position:fixed; left:calc(16px + env(safe-area-inset-left)); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:60;
   display:none; align-items:center; gap:10px;
   background:rgba(23,21,26,0.8);
   border:1px solid var(--line);
@@ -784,9 +798,148 @@ body.reduced-motion .grain-layer{ display:none; }
 .mi-hover-lift:hover{ transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,0.4); }
 .mi-tap{ transition:transform 0.15s ease; }
 .mi-tap:active{ transform:scale(0.96); }
+
+/* ==========================================================
+   13. NAVIGATION, PROGRESS & INLINE EDIT MODE
+   ========================================================== */
+
+/* Progress Bar */
+#museumProgressWrap{
+  position:fixed; top:0; left:0; right:0; z-index:50;
+  padding:calc(16px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) 16px calc(24px + env(safe-area-inset-left));
+  background:linear-gradient(180deg, rgba(11,10,12,0.9) 0%, transparent 100%);
+  pointer-events:none; opacity:0; transition:opacity 1s ease;
+}
+#museumProgressWrap.visible{ opacity:1; }
+.progress-text{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em;
+  color:var(--gold-dim); text-transform:uppercase; margin-bottom:8px;
+  display:flex; justify-content:space-between;
+}
+.progress-bar-bg{ width:100%; height:2px; background:var(--line); border-radius:2px; overflow:hidden; }
+.progress-bar-fill{ height:100%; width:0%; background:var(--gold); transition:width 0.6s var(--ease); }
+
+/* Hall Navigation (bottom sticky) */
+#hallNavigation{
+  position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+  z-index:50; display:flex; align-items:center; gap:20px;
+  background:rgba(23,21,26,0.6); backdrop-filter:blur(12px);
+  border:1px solid var(--line); border-radius:100px; padding:8px 18px;
+  opacity:0; pointer-events:none; transition:opacity 1s ease;
+  max-width:calc(100vw - 32px);
+}
+.nav-btn{ min-height:32px; padding:4px 2px; } /* enlarges tap target beyond visible text without changing layout */
+#hallNavigation.visible{ opacity:1; pointer-events:auto; }
+.nav-btn{
+  background:transparent; border:none; color:var(--muted);
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.05em;
+  transition:color 0.3s ease; text-transform:uppercase;
+}
+.nav-btn:hover{ color:var(--gold); }
+.nav-btn:disabled{ opacity:0.3; pointer-events:none; }
+#navIndicator{ font-family:var(--font-mono); font-size:10px; color:var(--gold); letter-spacing:0.1em; }
+
+/* Floating Admin Controls (Creator only) */
+#adminFloatControls{
+  position:fixed; top:calc(16px + env(safe-area-inset-top)); left:calc(16px + env(safe-area-inset-left)); z-index:100;
+  display:flex; gap:10px; flex-wrap:wrap; max-width:calc(100vw - 32px);
+}
+#adminFloatControls button{
+  background:rgba(201,169,106,0.1); border:1px solid var(--gold-dim);
+  color:var(--gold); font-family:var(--font-mono); font-size:10px;
+  padding:8px 16px; border-radius:100px; backdrop-filter:blur(6px);
+  text-transform:uppercase; letter-spacing:0.05em;
+  transition:background 0.3s ease, color 0.3s ease;
+}
+#adminFloatControls button:hover{ background:var(--gold); color:var(--bg); }
+#toggleEditModeBtn.active{ background:var(--gold); color:var(--bg); font-weight:600; }
+
+/* Inline Edit Mode */
+body.edit-mode-active [data-editable]{
+  outline:1px dashed rgba(201,169,106,0.5);
+  cursor:text; border-radius:4px;
+  transition:outline 0.2s ease, background 0.2s ease;
+}
+body.edit-mode-active [data-editable]:hover{
+  outline:1px solid var(--gold); background:rgba(201,169,106,0.05);
+}
+body.edit-mode-active [data-editable]:focus{
+  outline:2px solid var(--gold); background:rgba(201,169,106,0.1);
+}
+.edit-save-pill{
+  position:fixed; bottom:calc(80px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%) translateY(10px);
+  z-index:110; background:var(--gold); color:#0B0A0C;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:0.06em;
+  padding:8px 16px; border-radius:100px; opacity:0;
+  transition:opacity 0.3s ease, transform 0.3s ease;
+}
+.edit-save-pill.visible{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ==========================================================
+   CINEMATIC POLISH: mouse glow, hall transitions, lazy-load
+   ========================================================== */
+#mouseGlow{
+  position:fixed; width:500px; height:500px;
+  background:radial-gradient(circle, rgba(201,169,106,0.06) 0%, transparent 60%);
+  border-radius:50%; pointer-events:none; z-index:40;
+  transform:translate(-50%,-50%); opacity:0;
+  transition:opacity 0.8s ease; mix-blend-mode:screen;
+  left:-9999px; top:-9999px;
+}
+@media(hover:hover){ #mouseGlow.active{ opacity:1; } }
+
+#transitionOverlay{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(11,10,12,0.98); backdrop-filter:blur(15px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+#transitionOverlay.hidden{ display:none; }
+#transitionOverlay.visible{ opacity:1; pointer-events:all; }
+.transition-spinner{
+  width:40px; height:40px; border:1px solid rgba(237,230,218,0.1);
+  border-top-color:var(--gold); border-radius:50%;
+  animation:transitionSpin 1s cubic-bezier(0.6,0.2,0.4,0.8) infinite; margin-bottom:24px;
+}
+@keyframes transitionSpin{ to{ transform:rotate(360deg); } }
+#transitionText{
+  font-family:var(--font-display); font-style:italic; color:var(--gold-dim);
+  font-size:clamp(16px,4vw,20px); letter-spacing:0.08em;
+  animation:transitionPulse 2s infinite alternate; text-align:center;
+}
+@keyframes transitionPulse{ 0%{ opacity:0.5; filter:blur(1px); } 100%{ opacity:1; filter:blur(0); } }
+
+.hall-title, .curator-note{ transition:transform 0.3s ease, text-shadow 0.3s ease; }
+.hall-title:hover{ transform:translateY(-2px); text-shadow:0 4px 20px rgba(201,169,106,0.2); }
+
+img[loading="lazy"]{
+  opacity:0; will-change:opacity;
+  transition:opacity 0.8s cubic-bezier(0.4,0,0.2,1);
+  background:var(--bg-panel-2);
+}
+img[loading="lazy"].loaded{ opacity:1; }
+
+.theme-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:16px; }
+.theme-card{
+  background:var(--bg-panel); border:2px solid transparent; border-radius:12px;
+  overflow:hidden; cursor:pointer; transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.theme-card:hover{ transform:translateY(-4px); }
+.theme-card.active{ border-color:var(--gold); box-shadow:0 0 0 4px rgba(201,169,106,0.1); }
+.theme-preview{ height:70px; width:100%; display:flex; align-items:center; justify-content:center; position:relative; }
+.theme-card-info{ padding:10px; text-align:center; font-family:var(--font-mono); font-size:10px; letter-spacing:0.05em; color:var(--cream); border-top:1px solid var(--line); }
 </style>
 </head>
 <body>
+
+<!-- ===== MOUSE GLOW (desktop hover only, respects reduced-motion) ===== -->
+<div id="mouseGlow" aria-hidden="true"></div>
+
+<!-- ===== CINEMATIC HALL-TRANSITION OVERLAY ===== -->
+<div id="transitionOverlay" class="hidden" aria-hidden="true">
+  <div class="transition-spinner"></div>
+  <p id="transitionText">Preparing the next exhibit...</p>
+</div>
 
 <!-- ==========================================================
      PIN AUTHENTICATION SCREEN
@@ -853,7 +1006,7 @@ body.reduced-motion .grain-layer{ display:none; }
 <!-- ==========================================================
      FLOOR PLAN NAVIGATION
      ========================================================== -->
-<button id="floorPlanToggle">&#9638;</button>
+<button id="floorPlanToggle" aria-label="Buka denah museum">&#9638;</button>
 <div id="floorPlan">
   <div class="floor-cell" data-hall="1">01</div>
   <div class="floor-cell" data-hall="2">02</div>
@@ -864,6 +1017,34 @@ body.reduced-motion .grain-layer{ display:none; }
 </div>
 
 <!-- ==========================================================
+     MUSEUM PROGRESS BAR
+     ========================================================== -->
+<div id="museumProgressWrap" class="hidden">
+  <div class="progress-text">Museum Progress <span id="progressPercent">0%</span></div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="museumProgressBar"></div></div>
+</div>
+
+<!-- ==========================================================
+     FLOATING ADMIN CONTROLS (Creator only)
+     ========================================================== -->
+<div id="adminFloatControls" class="hidden">
+  <button id="toggleEditModeBtn">Edit Mode: <span>OFF</span></button>
+  <button id="openDashboardBtn">Dashboard</button>
+</div>
+
+<!-- ==========================================================
+     HALL NAVIGATION (bottom sticky)
+     ========================================================== -->
+<div id="hallNavigation" class="hidden">
+  <button id="navPrev" class="nav-btn">&larr; Previous</button>
+  <div id="navIndicator">Hall 1 of 6</div>
+  <button id="navNext" class="nav-btn">Next &rarr;</button>
+</div>
+
+<!-- Feedback pill for inline-edit autosave -->
+<div class="edit-save-pill" id="editSavePill">Tersimpan</div>
+
+<!-- ==========================================================
      MUSEUM (Halls built in Step 2 & 3)
      ========================================================== -->
 <main id="museum">
@@ -871,9 +1052,9 @@ body.reduced-motion .grain-layer{ display:none; }
   <!-- ===== HALL 1: Why This Museum Exists ===== -->
   <section class="hall" data-hall="1" id="hall1">
     <p class="exhibit-label">Exhibit No. 01 &middot; Opening Letter</p>
-    <h2 class="hall-title">Kenapa Museum Ini Ada</h2>
+    <h2 class="hall-title" data-editable="museum.hall1_title">Kenapa Museum Ini Ada</h2>
     <div class="plaque">
-      <p id="hall1LetterText">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu &mdash; setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya nggak ada yang hilang.</p>
+      <p id="hall1LetterText" data-editable="letters.opening">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu &mdash; setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya nggak ada yang hilang.</p>
       <p class="plaque-sign">&mdash; disusun dengan sabar, dari jauh</p>
     </div>
   </section>
@@ -881,31 +1062,31 @@ body.reduced-motion .grain-layer{ display:none; }
   <!-- ===== HALL 2: Memory Gallery ===== -->
   <section class="hall" data-hall="2" id="hall2">
     <p class="exhibit-label">Exhibit No. 02 &middot; Memory Gallery</p>
-    <h2 class="hall-title">Galeri Kenangan</h2>
-    <p class="curator-note">Setiap bingkai menyimpan satu momen. Sentuh untuk melihatnya lebih dekat.</p>
+    <h2 class="hall-title" data-editable="museum.hall2_title">Galeri Kenangan</h2>
+    <p class="curator-note" data-editable="museum.hall2_curator">Setiap bingkai menyimpan satu momen. Sentuh untuk melihatnya lebih dekat.</p>
     <div class="gallery-grid" id="galleryGrid"><!-- frames injected by JS --></div>
   </section>
 
   <!-- ===== HALL 3: Scrapbook ===== -->
   <section class="hall" data-hall="3" id="hall3">
     <p class="exhibit-label">Exhibit No. 03 &middot; Scrapbook</p>
-    <h2 class="hall-title">Buku Tempel Kita</h2>
-    <p class="curator-note">Potongan-potongan kecil yang nggak muat di galeri, tapi terlalu berharga untuk dilupakan.</p>
+    <h2 class="hall-title" data-editable="museum.hall3_title">Buku Tempel Kita</h2>
+    <p class="curator-note" data-editable="museum.hall3_curator">Potongan-potongan kecil yang nggak muat di galeri, tapi terlalu berharga untuk dilupakan.</p>
     <div class="scrapbook-canvas" id="scrapbookCanvas"><!-- items injected by JS --></div>
   </section>
   <!-- ===== HALL 4: Our Playlist (vinyl) ===== -->
   <section class="hall" data-hall="4" id="hall4">
     <p class="exhibit-label">Exhibit No. 04 &middot; Our Playlist</p>
-    <h2 class="hall-title">Lagu-Lagu Kita</h2>
-    <p class="curator-note">Putar satu piringan, dengar kenapa lagu itu berarti buat kita.</p>
+    <h2 class="hall-title" data-editable="museum.hall4_title">Lagu-Lagu Kita</h2>
+    <p class="curator-note" data-editable="museum.hall4_curator">Putar satu piringan, dengar kenapa lagu itu berarti buat kita.</p>
     <div class="playlist-list" id="playlistList"><!-- tracks injected by JS --></div>
   </section>
 
   <!-- ===== HALL 5: Love Letters ===== -->
   <section class="hall" data-hall="5" id="hall5">
     <p class="exhibit-label">Exhibit No. 05 &middot; Love Letters</p>
-    <h2 class="hall-title">Surat-Surat Cinta</h2>
-    <p class="curator-note">Amplop kecil, isinya nggak kecil. Pilih satu untuk dibaca.</p>
+    <h2 class="hall-title" data-editable="museum.hall5_title">Surat-Surat Cinta</h2>
+    <p class="curator-note" data-editable="museum.hall5_curator">Amplop kecil, isinya nggak kecil. Pilih satu untuk dibaca.</p>
     <div class="mini-envelopes" id="miniEnvelopes"><!-- envelopes injected by JS --></div>
   </section>
 
@@ -915,16 +1096,16 @@ body.reduced-motion .grain-layer{ display:none; }
     <h2 class="hall-title" id="stepperTitle">Terima Kasih</h2>
     <div class="stepper-wrap" id="stepperWrap">
       <div class="stepper-panel active" data-stage="thanks">
-        <p class="curator-note" id="stepperThanksText">Makasih udah bertahan sejauh ini bareng aku, walau layar sering jadi satu-satunya jarak yang bisa kita lewatin.</p>
+        <p class="curator-note" id="stepperThanksText" data-editable="letters.thankyou">Makasih udah bertahan sejauh ini bareng aku, walau layar sering jadi satu-satunya jarak yang bisa kita lewatin.</p>
       </div>
       <div class="stepper-panel" data-stage="sorry">
-        <p class="curator-note" id="stepperSorryText">Maaf buat semua momen aku bikin kamu nunggu, dan waktu-waktu aku nggak sesabar yang kamu butuhin.</p>
+        <p class="curator-note" id="stepperSorryText" data-editable="letters.sorry">Maaf buat semua momen aku bikin kamu nunggu, dan waktu-waktu aku nggak sesabar yang kamu butuhin.</p>
       </div>
       <div class="stepper-panel" data-stage="final">
-        <p class="curator-note" id="stepperFinalText">Ini bukan akhir dari museum ini &mdash; cuma jeda, sampai kita ketemu dan nambahin koleksi baru bareng-bareng.</p>
+        <p class="curator-note" id="stepperFinalText" data-editable="letters.final">Ini bukan akhir dari museum ini &mdash; cuma jeda, sampai kita ketemu dan nambahin koleksi baru bareng-bareng.</p>
       </div>
       <div class="stepper-panel" data-stage="quote">
-        <p class="curator-note" id="stepperQuoteText">Selamat Girlfriend&rsquo;s Day, sayang. Museum ini akan selalu ada untukmu.</p>
+        <p class="curator-note" id="stepperQuoteText" data-editable="letters.quote">Selamat Girlfriend&rsquo;s Day, sayang. Museum ini akan selalu ada untukmu.</p>
       </div>
       <button class="stepper-next" id="stepperNext">Lanjutkan</button>
       <div class="stepper-progress">
@@ -975,10 +1156,14 @@ body.reduced-motion .grain-layer{ display:none; }
 <section id="dashboard">
   <div class="dash-topbar">
     <span class="brand">Museum Dashboard</span>
-    <span class="dash-status ok" id="dashSaveStatus">Tersimpan otomatis</span>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <span class="dash-status ok" id="dashSaveStatus">Tersimpan otomatis</span>
+      <button id="previewMuseumBtn" class="dash-btn" style="background:var(--gold); color:var(--bg); border:none; padding:8px 16px; font-size:10px;">Preview as Girlfriend</button>
+    </div>
   </div>
   <div class="dash-body">
     <nav class="dash-nav">
+      <div class="dash-nav-item" data-panel="identity">Identity</div>
       <div class="dash-nav-item active" data-panel="gallery">Gallery</div>
       <div class="dash-nav-item" data-panel="letters">Letters</div>
       <div class="dash-nav-item" data-panel="playlist">Playlist</div>
@@ -996,10 +1181,10 @@ body.reduced-motion .grain-layer{ display:none; }
      MINI MUSIC PLAYER
      ========================================================== -->
 <div id="miniPlayer">
-  <button id="musicToggle">&#9835;</button>
+  <button id="musicToggle" aria-label="Nyalakan/matikan musik">&#9835;</button>
   <span id="musicLabel">MUSIC</span>
 </div>
-<audio id="bgm" loop>
+<audio id="bgm" loop preload="none">
   <!-- GANTI src DI BAWAH DENGAN LINK LAGU KALIAN -->
   <source src="REPLACE_WITH_MP3_URL.mp3" type="audio/mpeg">
 </audio>
@@ -1116,6 +1301,20 @@ async function loadConfig(){
   }
 }
 
+/** Reflects config.settings.museumName / welcomeMsg / bgImage (set via
+ * the Dashboard's Identity panel) onto the PIN screen. Safe to call
+ * multiple times — it only touches text/style, never re-attaches
+ * listeners, so it can run after every config load. */
+function applyIdentity(){
+  const cfg = AppState.config || {};
+  if(cfg.museumName) $('.pin-eyebrow').textContent = cfg.museumName;
+  if(cfg.welcomeMsg) $('.pin-subtitle').textContent = cfg.welcomeMsg;
+  if(cfg.bgImage){
+    $('#pinScreen').style.setProperty('--pin-bg-image', `url('${cfg.bgImage}')`);
+    $('#pinScreen').classList.add('has-custom-bg');
+  }
+}
+
 // ==========================================================
 // 4. PIN AUTHENTICATION (Apple-style dot passcode)
 // ==========================================================
@@ -1143,7 +1342,10 @@ async function handlePinSubmit(value){
 
   if(value === AppState.config.creatorPin){
     AppState.isCreator = true;
-    enterDashboard();
+    // Creator now walks through the same envelope/entrance experience
+    // as a visitor, then gets floating Edit Mode / Dashboard controls
+    // once inside the museum — see enterMuseum().
+    beginCinematicSequence();
     return;
   }
   if(value === AppState.config.visitorPin){
@@ -1170,10 +1372,11 @@ const loadingText   = $('#loadingText');
 const loadingFill   = $('#loadingProgressFill');
 
 const loadingMessages = [
-  "Preparing the museum...",
+  "Validating PIN...",
+  "Preparing your private exhibition...",
   "Collecting memories...",
   "Turning on the lights...",
-  "Opening today's exhibition..."
+  "Please wait..."
 ];
 
 function beginCinematicSequence(){
@@ -1314,8 +1517,14 @@ $all('.floor-cell').forEach(cell=>{
 });
 
 /** Auto-marks a Hall as visited (and lights up its floor-plan cell)
- * the moment it's scrolled into view — no manual click required. */
+ * the moment it's scrolled into view — no manual click required.
+ * Guarded so re-entering the museum (e.g. via "Preview as Girlfriend",
+ * which can be clicked repeatedly) never stacks a second/third
+ * IntersectionObserver watching the same 6 halls — that was a real
+ * memory/perf leak on every dashboard <-> museum round trip. */
+let hallVisitTrackingWired = false;
 function wireHallVisitTracking(){
+  if(hallVisitTrackingWired) return;
   const halls = $all('.hall');
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(entry=>{
@@ -1325,6 +1534,57 @@ function wireHallVisitTracking(){
     });
   }, { threshold: 0.5, root: $('#museum') });
   halls.forEach(h => io.observe(h));
+  hallVisitTrackingWired = true;
+}
+
+// ==========================================================
+// 8b. MOUSE GLOW (audit finding: HTML/CSS existed, no JS ever moved it)
+// ==========================================================
+(function wireMouseGlow(){
+  const glow = $('#mouseGlow');
+  if(!window.matchMedia('(hover: hover)').matches) return; // desktop/mouse only, matches the CSS gate
+  let raf = null;
+  document.addEventListener('mousemove', (e)=>{
+    if(AppState.reducedMotion) return;
+    glow.classList.add('active');
+    if(raf) return;
+    raf = requestAnimationFrame(()=>{
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+      raf = null;
+    });
+  });
+  document.addEventListener('mouseleave', ()=> glow.classList.remove('active'));
+})();
+
+// ==========================================================
+// 8c. CINEMATIC HALL-TRANSITION OVERLAY (audit finding: same as above —
+// markup + CSS existed with no JS ever showing/hiding it)
+// ==========================================================
+const transitionOverlay = $('#transitionOverlay');
+const transitionText = $('#transitionText');
+const TRANSITION_LINES = [
+  'Preparing the next exhibit...',
+  'Turning the page...',
+  'Almost there...',
+];
+
+/** Briefly shows the cinematic black overlay, runs `action` (a hall
+ * scroll) while hidden underneath it, then fades it back out. Skips
+ * the visual entirely under reduced-motion — it would just be an
+ * annoying flash with nothing to smooth over. */
+function withHallTransition(action){
+  if(AppState.reducedMotion){ action(); return; }
+  transitionText.textContent = TRANSITION_LINES[Math.floor(Math.random()*TRANSITION_LINES.length)];
+  transitionOverlay.classList.remove('hidden');
+  requestAnimationFrame(()=> transitionOverlay.classList.add('visible'));
+  setTimeout(()=>{
+    action();
+    setTimeout(()=>{
+      transitionOverlay.classList.remove('visible');
+      setTimeout(()=> transitionOverlay.classList.add('hidden'), 650);
+    }, 250);
+  }, 350);
 }
 
 // ==========================================================
@@ -1344,16 +1604,187 @@ $('#musicToggle').addEventListener('click', (e)=>{
 // ==========================================================
 // 10. ENTER MUSEUM / DASHBOARD
 // ==========================================================
+let currentHallIndex = 1;
+const totalHalls = 6;
+let museumScrollWired = false; // guards against attaching the scroll listener twice
+
+function updateMuseumUI(){
+  $('#navIndicator').textContent = `Hall ${currentHallIndex} of ${totalHalls}`;
+  $('#navPrev').disabled = (currentHallIndex === 1);
+  $('#navNext').disabled = (currentHallIndex === totalHalls);
+
+  const progressPercent = Math.round((currentHallIndex / totalHalls) * 100);
+  $('#progressPercent').textContent = `${progressPercent}%`;
+  $('#museumProgressBar').style.width = `${progressPercent}%`;
+}
+
+$('#navPrev').addEventListener('click', ()=>{
+  if(currentHallIndex > 1){
+    currentHallIndex--;
+    withHallTransition(()=>{
+      document.getElementById(`hall${currentHallIndex}`).scrollIntoView({ behavior: AppState.reducedMotion ? 'auto' : 'smooth' });
+      updateMuseumUI();
+    });
+  }
+});
+$('#navNext').addEventListener('click', ()=>{
+  if(currentHallIndex < totalHalls){
+    currentHallIndex++;
+    withHallTransition(()=>{
+      document.getElementById(`hall${currentHallIndex}`).scrollIntoView({ behavior: AppState.reducedMotion ? 'auto' : 'smooth' });
+      updateMuseumUI();
+    });
+  }
+});
+
 function enterMuseum(){
   $('#museum').classList.add('active');
+  $('#museum').scrollTop = 0; // always resume at Hall 1, esp. important when re-entering via Preview
   floorPlanToggle.classList.add('visible');
+
+  $('#museumProgressWrap').classList.remove('hidden');
+  $('#museumProgressWrap').classList.add('visible');
+  $('#hallNavigation').classList.remove('hidden');
+  $('#hallNavigation').classList.add('visible');
+
+  if(AppState.isCreator){
+    $('#adminFloatControls').classList.remove('hidden');
+  }
+
+  currentHallIndex = 1;
+  updateMuseumUI();
+
+  // Keeps the progress bar / bottom nav indicator in sync with manual
+  // scrolling, on top of the click-to-navigate buttons above. Guarded
+  // so re-entering the museum in the same session never double-attaches.
+  if(!museumScrollWired){
+    let scrollTicking = false;
+    $('#museum').addEventListener('scroll', ()=>{
+      if(scrollTicking) return;
+      scrollTicking = true;
+      requestAnimationFrame(()=>{
+        const scrollY = $('#museum').scrollTop;
+        const windowH = window.innerHeight;
+        const newIndex = Math.round(scrollY / windowH) + 1;
+        if(newIndex !== currentHallIndex && newIndex >= 1 && newIndex <= totalHalls){
+          currentHallIndex = newIndex;
+          updateMuseumUI();
+        }
+        scrollTicking = false;
+      });
+    }, { passive: true });
+    museumScrollWired = true;
+  }
+
   wireHallVisitTracking();
   loadGalleryPhotos();
   loadScrapbookItems();
   loadPlaylist();
   loadLoveLetters();
   loadFixedLetters();
+  loadSiteContent();
   showStepperStage(0);
+
+  // Ambience loop existed as an audio hook but was never actually
+  // triggered anywhere — starts it softly under the main bgm.
+  const ambience = $('#sfxAmbience');
+  if(ambience && !AppState.reducedMotion){
+    ambience.volume = 0.12;
+    ambience.play().catch(()=>{ /* file may not be set yet, or blocked until interaction */ });
+  }
+}
+
+// ---------- Inline Edit Mode (Creator only) ----------
+// Lets the Creator click straight into museum text and edit it in
+// place, Notion/Canva-style. On blur, the new value is written to
+// Firestore via the same helpers the Dashboard uses, so this and
+// the Dashboard forms always stay in sync.
+$('#toggleEditModeBtn').addEventListener('click', (e)=>{
+  const btn = e.currentTarget;
+  const isEditing = document.body.classList.toggle('edit-mode-active');
+  btn.classList.toggle('active', isEditing);
+  btn.innerHTML = `Edit Mode: <span>${isEditing ? 'ON' : 'OFF'}</span>`;
+
+  $all('[data-editable]').forEach(el=>{
+    el.contentEditable = isEditing;
+    el.removeEventListener('blur', handleInlineSave); // avoid stacking duplicate listeners
+    if(isEditing) el.addEventListener('blur', handleInlineSave);
+  });
+});
+
+$('#openDashboardBtn').addEventListener('click', ()=>{
+  $('#museum').classList.remove('active');
+  $('#dashboard').classList.add('active');
+  wireDashboardNav();
+});
+
+/** BUG FIX (reported): "Preview as Girlfriend" had no click handler.
+ * Closes the Dashboard, force-quits Edit Mode (so nothing is left
+ * contentEditable underneath), and drops the Creator back into the
+ * museum exactly as a visitor would see it. */
+$('#previewMuseumBtn').addEventListener('click', ()=>{
+  $('#dashboard').classList.remove('active');
+
+  if(document.body.classList.contains('edit-mode-active')){
+    document.body.classList.remove('edit-mode-active');
+    const editBtn = $('#toggleEditModeBtn');
+    editBtn.classList.remove('active');
+    editBtn.innerHTML = `Edit Mode: <span>OFF</span>`;
+    $all('[data-editable]').forEach(el=>{
+      el.contentEditable = false;
+      el.removeEventListener('blur', handleInlineSave);
+    });
+  }
+
+  enterMuseum();
+});
+
+function flashEditSavePill(text){
+  const pill = $('#editSavePill');
+  pill.textContent = text;
+  pill.classList.add('visible');
+  setTimeout(()=> pill.classList.remove('visible'), 1400);
+}
+
+/** Fires on blur of any [data-editable] element while Edit Mode is
+ * on. Field keys look like "letters.opening" (writes into the same
+ * singleton doc the Letters Manager uses) or "museum.hall2_title"
+ * (writes into a general /content/site doc). */
+async function handleInlineSave(e){
+  const el = e.target;
+  const newValue = el.innerText.trim();
+  const fieldKey = el.dataset.editable;
+  if(!fieldKey) return;
+
+  try{
+    if(fieldKey.startsWith('letters.')){
+      const type = fieldKey.split('.')[1];
+      await setSingleton('letters', type, { type, content: newValue });
+    } else {
+      await setSingleton('content', 'site', { [fieldKey]: newValue });
+    }
+    flashEditSavePill('Tersimpan');
+  } catch(err){
+    console.error('Inline autosave failed:', err);
+    flashEditSavePill('Gagal menyimpan');
+  }
+}
+
+/** Hydrates hall titles & curator notes (anything under the
+ * "museum.*" field-key namespace) from /content/site, so edits
+ * made via Edit Mode persist across future visits. */
+async function loadSiteContent(){
+  try{
+    const snap = await getDoc(doc(db, 'content', 'site'));
+    if(!snap.exists()) return;
+    const data = snap.data();
+    Object.entries(data).forEach(([key, value])=>{
+      const el = document.querySelector(`[data-editable="${key}"]`);
+      if(el) el.textContent = value;
+    });
+  } catch(err){
+    console.warn('Site content not ready yet — using defaults.', err);
+  }
 }
 
 // ---------- Hall 2: Memory Gallery ----------
@@ -1369,7 +1800,6 @@ const FALLBACK_GALLERY = [
 async function loadGalleryPhotos(){
   let photos = FALLBACK_GALLERY;
   try{
-    const { collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js");
     const q = query(collection(db, "gallery"), orderBy("order"));
     const snap = await getDocs(q);
     if(!snap.empty){
@@ -1391,6 +1821,7 @@ function renderGallery(photos){
     frame.addEventListener('click', ()=> openLightbox(photo));
     grid.appendChild(frame);
   });
+  markCachedImagesLoaded(grid);
 }
 
 const lightbox = $('#lightbox');
@@ -1422,7 +1853,6 @@ const FALLBACK_SCRAPBOOK = [
 async function loadScrapbookItems(){
   let items = FALLBACK_SCRAPBOOK;
   try{
-    const { collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js");
     const q = query(collection(db, "scrapbook"), orderBy("order"));
     const snap = await getDocs(q);
     if(!snap.empty){
@@ -1488,7 +1918,6 @@ const FALLBACK_PLAYLIST = [
 async function loadPlaylist(){
   let tracks = FALLBACK_PLAYLIST;
   try{
-    const { collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js");
     const q = query(collection(db, "playlist"), orderBy("order"));
     const snap = await getDocs(q);
     if(!snap.empty){ tracks = snap.docs.map(d => d.data()); }
@@ -1560,7 +1989,6 @@ const FALLBACK_LOVE_LETTERS = [
 async function loadLoveLetters(){
   let letters = FALLBACK_LOVE_LETTERS;
   try{
-    const { collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js");
     const q = query(collection(db, "letters"), orderBy("order"));
     const snap = await getDocs(q);
     if(!snap.empty){
@@ -1620,10 +2048,12 @@ function triggerEnding(){
 
   // Fade the ambient music out as the "lights" go down.
   let v = bgm.volume;
+  const ambience = $('#sfxAmbience');
   const fadeOut = setInterval(()=>{
     v -= 0.08;
     bgm.volume = Math.max(v, 0);
-    if(v <= 0){ clearInterval(fadeOut); bgm.pause(); }
+    if(ambience) ambience.volume = Math.max((ambience.volume||0) - 0.02, 0);
+    if(v <= 0){ clearInterval(fadeOut); bgm.pause(); if(ambience) ambience.pause(); }
   }, 120);
 
   // Lights-off bands switch off one by one (staggered).
@@ -1651,12 +2081,6 @@ function spawnStars(container, count){
 }
 
 $('#visitAgainBtn').addEventListener('click', ()=> location.reload());
-
-function enterDashboard(){
-  hide(pinScreen);
-  $('#dashboard').classList.add('active');
-  wireDashboardNav();
-}
 
 // ==========================================================
 // 11. CREATOR DASHBOARD — DATA LAYER + 5 MANAGERS
@@ -1704,6 +2128,55 @@ async function swapOrder(collectionName, items, indexA, indexB){
   const orderA = a.order, orderB = b.order;
   await updateItem(collectionName, a.id, { order: orderB });
   await updateItem(collectionName, b.id, { order: orderA });
+}
+
+// ---------- Identity Manager ----------
+async function renderIdentityPanel(){
+  const content = $('#dashContent');
+  const current = AppState.config || {};
+  content.innerHTML = `
+    <p class="dash-panel-title">Museum Identity</p>
+    <p class="dash-panel-desc">Nama, pesan sambutan, dan foto latar layar PIN</p>
+    <div class="dash-card">
+      <div class="dash-field"><label>Nama Museum</label>
+        <input type="text" id="idMuseumName" value="${(current.museumName || 'Our Little Museum').replace(/"/g,'&quot;')}">
+      </div>
+      <div class="dash-field"><label>Pesan Sambutan (di layar PIN)</label>
+        <textarea id="idWelcomeMsg" rows="2">${current.welcomeMsg || 'Museum ini hanya terbuka untuk pengunjung dengan undangan khusus.'}</textarea>
+      </div>
+      <div class="dash-field">
+        <label>Foto Latar Layar PIN (opsional)</label>
+        ${current.bgImage ? `<img class="dash-thumb" style="width:100%; height:110px; margin-bottom:8px;" src="${current.bgImage}" alt="">` : ''}
+        <input type="file" id="idBgFile" accept="image/*">
+      </div>
+      <button class="dash-btn" id="saveIdentityBtn">Simpan Identitas</button>
+    </div>
+  `;
+
+  $('#saveIdentityBtn').addEventListener('click', async (e)=>{
+    const btn = e.currentTarget;
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
+    try{
+      const museumName = $('#idMuseumName').value.trim() || 'Our Little Museum';
+      const welcomeMsg = $('#idWelcomeMsg').value.trim();
+      const payload = { museumName, welcomeMsg };
+
+      const file = $('#idBgFile').files[0];
+      if(file){
+        payload.bgImage = await uploadFile(file, 'identity');
+      }
+
+      await setSingleton('config', 'settings', payload);
+      AppState.config = { ...AppState.config, ...payload };
+      applyIdentity();
+      flashSaveStatus('Identitas tersimpan');
+      renderIdentityPanel(); // refresh so the new background thumbnail shows
+    } catch(err){
+      console.error('Failed to save identity:', err);
+      flashSaveStatus('Gagal menyimpan', true);
+      btn.disabled = false; btn.textContent = 'Simpan Identitas';
+    }
+  });
 }
 
 // ---------- Gallery Manager (+ Scrapbook, folded in — no separate menu) ----------
@@ -1794,9 +2267,11 @@ async function renderGalleryPanel(){
     });
   }
 
-  $('#addPhotoBtn').addEventListener('click', async ()=>{
+  $('#addPhotoBtn').addEventListener('click', async (e)=>{
     const file = $('#newPhotoFile').files[0];
     if(!file){ flashSaveStatus('Pilih file foto dulu', true); return; }
+    const btn = e.currentTarget;
+    btn.disabled = true; // guards against double-submit while the upload is in flight
     flashSaveStatus('Mengunggah...');
     try{
       const src = await uploadFile(file, 'gallery');
@@ -1809,6 +2284,7 @@ async function renderGalleryPanel(){
       flashSaveStatus('Foto ditambahkan');
       refreshGalleryList();
     } catch(err){ console.error(err); flashSaveStatus('Gagal mengunggah', true); }
+    finally{ btn.disabled = false; }
   });
 
   async function refreshScrapList(){
@@ -1836,11 +2312,13 @@ async function renderGalleryPanel(){
     });
   }
 
-  $('#addScrapBtn').addEventListener('click', async ()=>{
+  $('#addScrapBtn').addEventListener('click', async (e)=>{
     const type = $('#newScrapType').value;
-    const existing = await fetchAll('scrapbook', 'order');
-    const base = { type, x: $('#newScrapX').value, y: $('#newScrapY').value, rotate: Math.round(Math.random()*12-6), order: existing.length };
+    const btn = e.currentTarget;
+    btn.disabled = true;
     try{
+      const existing = await fetchAll('scrapbook', 'order');
+      const base = { type, x: $('#newScrapX').value, y: $('#newScrapY').value, rotate: Math.round(Math.random()*12-6), order: existing.length };
       if(type === 'polaroid'){
         const file = $('#newScrapFile').files[0];
         if(!file){ flashSaveStatus('Pilih file foto dulu', true); return; }
@@ -1855,6 +2333,7 @@ async function renderGalleryPanel(){
       flashSaveStatus('Item ditambahkan');
       refreshScrapList();
     } catch(err){ console.error(err); flashSaveStatus('Gagal menambah item', true); }
+    finally{ btn.disabled = false; }
   });
 
   refreshGalleryList();
@@ -1934,14 +2413,19 @@ async function renderLettersPanel(){
     });
   }
 
-  $('#addLoveBtn').addEventListener('click', async ()=>{
+  $('#addLoveBtn').addEventListener('click', async (e)=>{
     const content = $('#newLoveContent').value.trim();
     if(!content){ flashSaveStatus('Isi surat dulu', true); return; }
-    const existing = (await fetchAll('letters', 'order')).filter(l => l.type === 'love');
-    await addItem('letters', { type:'love', content, order: existing.length, label: String(existing.length+1).padStart(2,'0') });
-    $('#newLoveContent').value = '';
-    flashSaveStatus('Surat ditambahkan');
-    refreshLoveLetters();
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try{
+      const existing = (await fetchAll('letters', 'order')).filter(l => l.type === 'love');
+      await addItem('letters', { type:'love', content, order: existing.length, label: String(existing.length+1).padStart(2,'0') });
+      $('#newLoveContent').value = '';
+      flashSaveStatus('Surat ditambahkan');
+      refreshLoveLetters();
+    } catch(err){ console.error(err); flashSaveStatus('Gagal menambah surat', true); }
+    finally{ btn.disabled = false; }
   });
 
   refreshLoveLetters();
@@ -2001,9 +2485,11 @@ async function renderPlaylistPanel(){
     });
   }
 
-  $('#addTrackBtn').addEventListener('click', async ()=>{
+  $('#addTrackBtn').addEventListener('click', async (e)=>{
     const title = $('#newTrackTitle').value.trim();
     if(!title){ flashSaveStatus('Isi judul lagu dulu', true); return; }
+    const btn = e.currentTarget;
+    btn.disabled = true;
     flashSaveStatus('Menyimpan...');
     try{
       let src = $('#newTrackUrl').value.trim();
@@ -2024,6 +2510,7 @@ async function renderPlaylistPanel(){
       flashSaveStatus('Lagu ditambahkan');
       refreshList();
     } catch(err){ console.error(err); flashSaveStatus('Gagal menambah lagu', true); }
+    finally{ btn.disabled = false; }
   });
 
   refreshList();
@@ -2140,23 +2627,28 @@ async function renderSettingsPanel(){
 // ==========================================================
 // 12. DASHBOARD NAV (simplified 5-menu shell)
 // ==========================================================
+let dashboardNavWired = false;
 function wireDashboardNav(){
   const items = $all('.dash-nav-item');
   const renderers = {
+    identity: renderIdentityPanel,
     gallery: renderGalleryPanel,
     letters: renderLettersPanel,
     playlist: renderPlaylistPanel,
     appearance: renderAppearancePanel,
     settings: renderSettingsPanel,
   };
-  items.forEach(item=>{
-    item.addEventListener('click', ()=>{
-      items.forEach(i=>i.classList.remove('active'));
-      item.classList.add('active');
-      renderers[item.dataset.panel]();
+  if(!dashboardNavWired){
+    items.forEach(item=>{
+      item.addEventListener('click', ()=>{
+        items.forEach(i=>i.classList.remove('active'));
+        item.classList.add('active');
+        renderers[item.dataset.panel]();
+      });
     });
-  });
-  renderGalleryPanel(); // default panel on dashboard open
+    dashboardNavWired = true;
+  }
+  renderGalleryPanel(); // default panel whenever the dashboard is opened
 }
 
 /** Loads the singleton letters (opening / thankyou / sorry / final /
@@ -2173,7 +2665,32 @@ async function loadFixedLetters(){
 }
 
 // ==========================================================
-// 13. INIT
+// 13. LAZY-LOAD IMAGE FADE-IN
+// ==========================================================
+// The CSS (img[loading="lazy"] -> .loaded) was already in place, but
+// nothing ever added the "loaded" class, so every lazy image stayed
+// invisible. The 'load' event does not bubble, so this must be
+// attached with useCapture:true on a common ancestor (document).
+document.addEventListener('load', (e)=>{
+  const el = e.target;
+  if(el.tagName === 'IMG' && el.hasAttribute('loading')){
+    el.classList.add('loaded');
+  }
+}, true);
+
+/** Some images finish loading from the browser cache before this
+ * listener is even attached (e.g. re-rendering a panel that reuses
+ * a cached photo), in which case the 'load' event never fires again.
+ * Call this right after injecting any lazy <img> markup to catch
+ * that case and mark already-complete images as loaded immediately. */
+function markCachedImagesLoaded(container){
+  container.querySelectorAll('img[loading="lazy"]').forEach(img=>{
+    if(img.complete && img.naturalWidth > 0) img.classList.add('loaded');
+  });
+}
+
+// ==========================================================
+// 14. INIT
 // ==========================================================
 applyMotionPreference();
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyMotionPreference);
@@ -2181,7 +2698,15 @@ spawnDust($('#pinAtmosphere'), 10);
 loadConfig().then(()=>{
   if(AppState.config?.theme) applyTheme(AppState.config.theme);
   if(AppState.config?.font) applyFont(AppState.config.font);
+  // BUG FIX: these two were saved by the Dashboard (Identity /
+  // Appearance panels) but never read back on load, so a Creator's
+  // saved museum name / welcome message / forced-reduced-motion
+  // setting silently never reached actual visitors.
+  applyIdentity();
+  if(AppState.config?.forceReducedMotion){
+    AppState.reducedMotion = true;
+    document.body.classList.add('reduced-motion');
+  }
 });
 </script>
 </body>
-</html>
