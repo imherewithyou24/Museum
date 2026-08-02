@@ -12,7 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="style.css">
+<!-- Path CSS disesuaikan ke dalam folder css/ -->
+<link rel="stylesheet" href="./css/style.css">
 
 </head>
 <body>
@@ -284,12 +285,11 @@
 <audio id="sfxAmbience" src="REPLACE_WITH_SFX_AMBIENCE_LOOP.mp3" preload="none" loop></audio>
 
 <!-- ==========================================================
-     APP SCRIPT
+     SCRIPTS (ES modules)
      ========================================================== -->
-
-<!-- ==========================================================
-     SCRIPTS (ES modules — firebase.js is imported by both)
-     ========================================================== -->
-<script type="module" src="app.js"></script>
-<script type="module" src="admin.js"></script>
+<!-- Path JS disesuaikan ke dalam folder js/ -->
+<script type="module" src="./js/firebase.js"></script>
+<script type="module" src="./js/app.js"></script>
+<script type="module" src="./js/admin.js"></script>
 </body>
+</html>
