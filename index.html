@@ -18,6 +18,12 @@
 </head>
 <body>
 
+<!-- ===== CREATOR BADGE (Hanya muncul saat login PIN Creator) ===== -->
+<div id="creatorBadge" class="hidden" style="position: fixed; top: env(safe-area-inset-top, 16px); right: env(safe-area-inset-right, 16px); z-index: 9999; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; background: rgba(11,10,12,0.8); padding: 8px 12px; border-radius: 100px; border: 1px solid rgba(201,169,106,0.2); backdrop-filter: blur(8px); pointer-events: none; transition: opacity 0.5s ease;">
+  <span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold);"></span>
+  Creator Mode
+</div>
+
 <!-- ===== MOUSE GLOW (desktop hover only, respects reduced-motion) ===== -->
 <div id="mouseGlow" aria-hidden="true"></div>
 
@@ -35,9 +41,9 @@
     <div class="grain-layer"></div>
     <div class="light-leak"></div>
   </div>
-  <p class="pin-eyebrow">Our Little Museum</p>
-  <h1 class="pin-title">Selamat datang.</h1>
-  <p class="pin-subtitle">Museum ini hanya terbuka untuk pengunjung dengan undangan khusus.</p>
+  <p class="pin-eyebrow" data-editable="config.museumName">Our Little Museum</p>
+  <h1 class="pin-title" data-editable="config.pinTitle">Selamat datang.</h1>
+  <p class="pin-subtitle" data-editable="config.welcomeMsg">Museum ini hanya terbuka untuk pengunjung dengan undangan khusus.</p>
 
   <div class="pin-dots" id="pinDots">
     <div class="pin-dot"></div>
@@ -47,7 +53,9 @@
   </div>
   <input type="tel" id="pinRealInput" maxlength="4" inputmode="numeric" autocomplete="off">
   <p id="pinError"></p>
-  <p class="pin-tap-area">Ketuk di mana saja untuk mulai mengetik</p>
+  
+  <!-- Tombol Enter pengganti tap-area -->
+  <button id="pinEnterBtn" style="margin-top: 24px; background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; padding: 12px 28px; border-radius: 100px; text-transform: uppercase; transition: all 0.3s ease;">OPEN MUSEUM</button>
 </section>
 
 <!-- ==========================================================
@@ -56,7 +64,7 @@
 <section id="loadingScreen" class="screen hidden">
   <div class="loading-bg-glow"></div>
   <div class="loading-mark"></div>
-  <p id="loadingText">Preparing the museum...</p>
+  <p id="loadingText">Checking invitation...</p>
   <div class="loading-progress"><div class="loading-progress-fill" id="loadingProgressFill"></div></div>
 </section>
 
@@ -69,10 +77,10 @@
     <div class="envelope-flap"></div>
     <div class="wax-seal" id="waxSeal">R</div>
     <div class="letter-card" id="letterCard">
-      <p id="letterCardText">Untuk kamu, yang selalu sabar menunggu di ujung layar &mdash; selamat datang di museum kecil kita.</p>
+      <p id="letterCardText" data-editable="letters.envelope">Untuk kamu, yang selalu sabar menunggu di ujung layar &mdash; selamat datang di museum kecil kita.</p>
     </div>
   </div>
-  <p class="envelope-hint" id="envelopeHint">Ketuk amplop untuk membukanya</p>
+  <p class="envelope-hint" id="envelopeHint" data-editable="museum.envelopeHint">Ketuk amplop untuk membukanya</p>
 </section>
 
 <!-- ==========================================================
@@ -86,7 +94,7 @@
     <div class="corridor-ring"></div>
     <div class="corridor-ring"></div>
   </div>
-  <p id="entranceText">Kamu melangkah masuk...</p>
+  <p id="entranceText" data-editable="museum.entranceText">Kamu melangkah masuk...</p>
 </section>
 
 <!-- ==========================================================
@@ -111,14 +119,6 @@
 </div>
 
 <!-- ==========================================================
-     FLOATING ADMIN CONTROLS (Creator only)
-     ========================================================== -->
-<div id="adminFloatControls" class="hidden">
-  <button id="toggleEditModeBtn">Edit Mode: <span>OFF</span></button>
-  <button id="openDashboardBtn">Dashboard</button>
-</div>
-
-<!-- ==========================================================
      HALL NAVIGATION (bottom sticky)
      ========================================================== -->
 <div id="hallNavigation" class="hidden">
@@ -137,17 +137,17 @@
 
   <!-- ===== HALL 1: Why This Museum Exists ===== -->
   <section class="hall" data-hall="1" id="hall1">
-    <p class="exhibit-label">Exhibit No. 01 &middot; Opening Letter</p>
+    <p class="exhibit-label" data-editable="museum.hall1_label">Exhibit No. 01 &middot; Opening Letter</p>
     <h2 class="hall-title" data-editable="museum.hall1_title">Kenapa Museum Ini Ada</h2>
     <div class="plaque">
       <p id="hall1LetterText" data-editable="letters.opening">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu &mdash; setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya nggak ada yang hilang.</p>
-      <p class="plaque-sign">&mdash; disusun dengan sabar, dari jauh</p>
+      <p class="plaque-sign" data-editable="museum.hall1_sign">&mdash; disusun dengan sabar, dari jauh</p>
     </div>
   </section>
 
   <!-- ===== HALL 2: Memory Gallery ===== -->
   <section class="hall" data-hall="2" id="hall2">
-    <p class="exhibit-label">Exhibit No. 02 &middot; Memory Gallery</p>
+    <p class="exhibit-label" data-editable="museum.hall2_label">Exhibit No. 02 &middot; Memory Gallery</p>
     <h2 class="hall-title" data-editable="museum.hall2_title">Galeri Kenangan</h2>
     <p class="curator-note" data-editable="museum.hall2_curator">Setiap bingkai menyimpan satu momen. Sentuh untuk melihatnya lebih dekat.</p>
     <div class="gallery-grid" id="galleryGrid"><!-- frames injected by JS --></div>
@@ -155,14 +155,15 @@
 
   <!-- ===== HALL 3: Scrapbook ===== -->
   <section class="hall" data-hall="3" id="hall3">
-    <p class="exhibit-label">Exhibit No. 03 &middot; Scrapbook</p>
+    <p class="exhibit-label" data-editable="museum.hall3_label">Exhibit No. 03 &middot; Scrapbook</p>
     <h2 class="hall-title" data-editable="museum.hall3_title">Buku Tempel Kita</h2>
     <p class="curator-note" data-editable="museum.hall3_curator">Potongan-potongan kecil yang nggak muat di galeri, tapi terlalu berharga untuk dilupakan.</p>
     <div class="scrapbook-canvas" id="scrapbookCanvas"><!-- items injected by JS --></div>
   </section>
+  
   <!-- ===== HALL 4: Our Playlist (vinyl) ===== -->
   <section class="hall" data-hall="4" id="hall4">
-    <p class="exhibit-label">Exhibit No. 04 &middot; Our Playlist</p>
+    <p class="exhibit-label" data-editable="museum.hall4_label">Exhibit No. 04 &middot; Our Playlist</p>
     <h2 class="hall-title" data-editable="museum.hall4_title">Lagu-Lagu Kita</h2>
     <p class="curator-note" data-editable="museum.hall4_curator">Putar satu piringan, dengar kenapa lagu itu berarti buat kita.</p>
     <div class="playlist-list" id="playlistList"><!-- tracks injected by JS --></div>
@@ -170,7 +171,7 @@
 
   <!-- ===== HALL 5: Love Letters ===== -->
   <section class="hall" data-hall="5" id="hall5">
-    <p class="exhibit-label">Exhibit No. 05 &middot; Love Letters</p>
+    <p class="exhibit-label" data-editable="museum.hall5_label">Exhibit No. 05 &middot; Love Letters</p>
     <h2 class="hall-title" data-editable="museum.hall5_title">Surat-Surat Cinta</h2>
     <p class="curator-note" data-editable="museum.hall5_curator">Amplop kecil, isinya nggak kecil. Pilih satu untuk dibaca.</p>
     <div class="mini-envelopes" id="miniEnvelopes"><!-- envelopes injected by JS --></div>
@@ -178,8 +179,8 @@
 
   <!-- ===== HALL 6: Thank You + Sorry + Final Letter ===== -->
   <section class="hall" data-hall="6" id="hall6">
-    <p class="exhibit-label">Exhibit No. 06 &middot; Penutup</p>
-    <h2 class="hall-title" id="stepperTitle">Terima Kasih</h2>
+    <p class="exhibit-label" data-editable="museum.hall6_label">Exhibit No. 06 &middot; Penutup</p>
+    <h2 class="hall-title" id="stepperTitle" data-editable="museum.hall6_title">Terima Kasih</h2>
     <div class="stepper-wrap" id="stepperWrap">
       <div class="stepper-panel active" data-stage="thanks">
         <p class="curator-note" id="stepperThanksText" data-editable="letters.thankyou">Makasih udah bertahan sejauh ini bareng aku, walau layar sering jadi satu-satunya jarak yang bisa kita lewatin.</p>
@@ -193,7 +194,7 @@
       <div class="stepper-panel" data-stage="quote">
         <p class="curator-note" id="stepperQuoteText" data-editable="letters.quote">Selamat Girlfriend&rsquo;s Day, sayang. Museum ini akan selalu ada untukmu.</p>
       </div>
-      <button class="stepper-next" id="stepperNext">Lanjutkan</button>
+      <button class="stepper-next" id="stepperNext" data-editable="museum.stepperNextBtn">Lanjutkan</button>
       <div class="stepper-progress">
         <div class="stepper-dot active" data-stage="thanks"></div>
         <div class="stepper-dot" data-stage="sorry"></div>
@@ -207,8 +208,8 @@
 
 <!-- ===== LOVE LETTER MODAL (Hall 5) ===== -->
 <div id="letterModal">
-  <div class="letter-modal-card"><p id="letterModalText"></p></div>
-  <button id="letterModalClose">Tutup</button>
+  <div class="letter-modal-card"><p id="letterModalText" data-editable="letters.modalTemp">Isi surat akan muncul di sini</p></div>
+  <button id="letterModalClose" data-editable="museum.modalCloseBtn">Tutup</button>
 </div>
 
 <!-- ===== TRACK PLAYER (Hall 4 audio, separate from ambient bgm) ===== -->
@@ -222,53 +223,26 @@
   <div class="lights-off-band" style="top:60%;"></div>
   <div class="lights-off-band" style="top:80%;"></div>
   <div class="star-field" id="starField"></div>
-  <p id="endingQuote">&ldquo;This museum will always wait for its favorite visitor.&rdquo;</p>
-  <button id="visitAgainBtn">Visit Again</button>
+  <p id="endingQuote" data-editable="museum.endingQuote">&ldquo;This museum will always wait for its favorite visitor.&rdquo;</p>
+  <button id="visitAgainBtn" data-editable="museum.visitAgainBtn">Visit Again</button>
 </section>
 
 <!-- ===== LIGHTBOX (Hall 2 photo viewer) ===== -->
 <div id="lightbox">
   <div class="lightbox-photo-wrap"><img id="lightboxImg" src="" alt=""></div>
   <div class="lightbox-story">
-    <p class="story-meta" id="lightboxMeta">Momen</p>
-    <p id="lightboxStory"></p>
+    <p class="story-meta" id="lightboxMeta" data-editable="museum.lightboxMetaTemp">Momen</p>
+    <p id="lightboxStory" data-editable="museum.lightboxStoryTemp">Cerita foto akan muncul di sini</p>
   </div>
-  <button id="lightboxClose">Tutup</button>
+  <button id="lightboxClose" data-editable="museum.lightboxCloseBtn">Tutup</button>
 </div>
-
-<!-- ==========================================================
-     CREATOR DASHBOARD (simplified: 5 menus)
-     ========================================================== -->
-<section id="dashboard">
-  <div class="dash-topbar">
-    <span class="brand">Museum Dashboard</span>
-    <div style="display:flex; gap:12px; align-items:center;">
-      <span class="dash-status ok" id="dashSaveStatus">Tersimpan otomatis</span>
-      <button id="previewMuseumBtn" class="dash-btn" style="background:var(--gold); color:var(--bg); border:none; padding:8px 16px; font-size:10px;">Preview as Girlfriend</button>
-    </div>
-  </div>
-  <div class="dash-body">
-    <nav class="dash-nav">
-      <div class="dash-nav-item" data-panel="identity">Identity</div>
-      <div class="dash-nav-item active" data-panel="gallery">Gallery</div>
-      <div class="dash-nav-item" data-panel="letters">Letters</div>
-      <div class="dash-nav-item" data-panel="playlist">Playlist</div>
-      <div class="dash-nav-item" data-panel="appearance">Appearance</div>
-      <div class="dash-nav-item" data-panel="settings">Settings</div>
-    </nav>
-    <div class="dash-content" id="dashContent">
-      <p class="exhibit-label">Gallery Manager</p>
-      <p class="desc" style="text-align:left;">Akan dibangun di Langkah 4 &mdash; upload foto, caption, story, urutan.</p>
-    </div>
-  </div>
-</section>
 
 <!-- ==========================================================
      MINI MUSIC PLAYER
      ========================================================== -->
 <div id="miniPlayer">
   <button id="musicToggle" aria-label="Nyalakan/matikan musik">&#9835;</button>
-  <span id="musicLabel">MUSIC</span>
+  <span id="musicLabel" data-editable="museum.musicLabel">MUSIC</span>
 </div>
 <audio id="bgm" loop preload="none">
   <!-- GANTI src DI BAWAH DENGAN LINK LAGU KALIAN -->
