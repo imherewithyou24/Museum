@@ -4,7 +4,7 @@
 // Creator-only features (Dashboard, Inline Edit, managers) live in
 // admin.js, which imports the shared pieces exported below.
 // ==========================================================
-import { getDocument, fetchAll, setSingleton } from './firebase.js';
+import { getDocument, fetchAll } from './firebase.js';
 
 // 2. APP STATE
 // ==========================================================
@@ -315,7 +315,7 @@ function wireHallVisitTracking(){
 }
 
 // ==========================================================
-// 8b. MOUSE GLOW (audit finding: HTML/CSS existed, no JS ever moved it)
+// 8b. MOUSE GLOW 
 // ==========================================================
 (function wireMouseGlow(){
   const glow = $('#mouseGlow');
@@ -335,8 +335,7 @@ function wireHallVisitTracking(){
 })();
 
 // ==========================================================
-// 8c. CINEMATIC HALL-TRANSITION OVERLAY (audit finding: same as above —
-// markup + CSS existed with no JS ever showing/hiding it)
+// 8c. CINEMATIC HALL-TRANSITION OVERLAY 
 // ==========================================================
 const transitionOverlay = $('#transitionOverlay');
 const transitionText = $('#transitionText');
@@ -471,7 +470,6 @@ export function enterMuseum(){
     ambience.play().catch(()=>{ /* file may not be set yet, or blocked until interaction */ });
   }
 }
-
 
 /** Hydrates hall titles & curator notes (anything under the
  * "museum.*" field-key namespace) from /content/site, so edits
@@ -834,7 +832,6 @@ function markCachedImagesLoaded(container){
   });
 }
 
-
 // ==========================================================
 // 14. INIT
 // ==========================================================
@@ -854,4 +851,3 @@ loadConfig().then(()=>{
     document.body.classList.add('reduced-motion');
   }
 });
-
