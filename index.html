@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Our Little Museum - A special place for memories.">
   <title>Our Little Museum</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,14 +14,26 @@
 </head>
 <body>
 
-  <!-- Audio sudah diatur sesuai file yang kamu upload di GitHub -->
-  <audio id="bgMusic" loop>
-    <source src="Strawberry Guy - Mrs Magic [3dZczoNnFWI].mp3" type="audio/mpeg">
+  <!-- Audio: Sesuai file di GitHub -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="Strawberry Guy - Mrs Magic (Strings Version) [r22AG0WKV1M].mp3" type="audio/mpeg">
   </audio>
+
+  <!-- Mouse Glow (Desktop) -->
+  <div id="mouseGlow" class="mouse-glow"></div>
+  
+  <!-- Music Icon -->
+  <div id="musicIcon" class="music-icon hidden">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+  </div>
+
+  <!-- Progress Bar -->
+  <div id="progressBar" class="progress-bar"></div>
 
   <!-- ==================== HALAMAN PIN ==================== -->
   <section id="pinScreen" class="screen">
-    <div class="pin-container">
+    <div class="pin-container opening-sequence">
+      <div class="logo">🏛️</div>
       <h1 class="title" data-editable="pin.title">Selamat datang.</h1>
       <p class="subtitle" data-editable="pin.subtitle">Museum ini hanya untuk pengunjung khusus.</p>
       
@@ -28,25 +41,29 @@
         <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
       </div>
       
-      <input type="tel" id="pinInput" maxlength="4" autocomplete="off">
-      <p id="pinError" class="error-text hidden">PIN salah.</p>
-      <button id="btnEnter" class="btn-outline hidden" data-editable="pin.btn">ENTER</button>
-      <p class="hint-text" data-editable="pin.hint">Ketuk untuk memasukkan kode.</p>
+      <input type="tel" id="pinInput" maxlength="4" autocomplete="off" aria-label="PIN Input">
+      
+      <p id="pinMessage" class="pin-message hidden"></p>
+      <button id="btnEnter" class="btn-outline hidden ripple" data-editable="pin.btn">ENTER</button>
+      <p class="hint-text">Ketuk untuk memasukkan kode.</p>
     </div>
   </section>
 
   <!-- ==================== HALAMAN LOADING ==================== -->
-  <section id="loadingScreen" class="screen hidden">
+  <section id="loadingScreen" class="screen hidden fade-out-screen">
     <div class="spinner"></div>
-    <p class="loading-text" data-editable="loading.text">Preparing something special...</p>
+    <p class="loading-text" data-editable="loading.text">Preparing your memories...</p>
   </section>
 
   <!-- ==================== ISI MUSEUM ==================== -->
   <main id="museum" class="hidden">
     
+    <!-- Partikel Debu dan Bintang akan di-inject JS ke sini -->
+    <div id="particlesContainer" class="particles-container"></div>
+
     <!-- 1. Surat Pembuka -->
     <section class="museum-section" id="section-letter">
-      <div class="envelope-wrapper" id="envelope">
+      <div class="envelope-wrapper wiggle" id="envelope">
         <div class="envelope-body"></div>
         <div class="envelope-flap"></div>
         <div class="envelope-seal">R</div>
@@ -59,65 +76,117 @@
     </section>
 
     <!-- 2. Kenapa Website Ini Dibuat -->
-    <section class="museum-section">
+    <section class="museum-section page-turn">
       <h2 class="section-title" data-editable="intro.title">Kenapa Museum Ini Ada</h2>
       <p class="section-desc" data-editable="intro.desc">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu — setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya tidak ada yang hilang.</p>
     </section>
 
-    <!-- 3. Galeri Foto -->
-    <section class="museum-section">
+    <!-- 3. Album Galeri (10 Slot) -->
+    <section class="museum-section page-turn gallery-section">
       <h2 class="section-title" data-editable="gallery.title">Galeri Kenangan</h2>
-      <div class="gallery-grid">
-        <div class="gallery-item">
-          <!-- Foto Pertama sudah dipasang link Raw -->
-          <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/73c1094d-712a-4289-b48e-8fa58af0d4a3.jpg" alt="Foto 1" id="galleryImg1" data-img="gallery.img1">
-          <p class="caption" data-editable="gallery.cap1">Panggilan video pertama</p>
+      <div class="gallery-container">
+        <button id="btnPrev" class="nav-btn ripple">‹</button>
+        <div class="gallery-track" id="galleryTrack">
+          
+          <!-- Slot 1-6 (Foto yang kamu kirim) -->
+          <div class="polaroid">
+            <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/IMG/1f8f1363-e875-42b1-954b-a0ca8b012f22.jpg" alt="Memory 1" data-img="gallery.img1" loading="lazy">
+            <p class="caption" data-editable="gallery.cap1">Tatapanku</p>
+          </div>
+          <div class="polaroid">
+            <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/IMG/73c1094d-712a-4289-b48e-8fa58af0d4a3.jpg" alt="Memory 2" data-img="gallery.img2" loading="lazy">
+            <p class="caption" data-editable="gallery.cap2">Bahagiaku</p>
+          </div>
+          <div class="polaroid">
+            <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/IMG/86206e9c-60fd-4d10-a7d5-444695554614.jpg" alt="Memory 3" data-img="gallery.img3" loading="lazy">
+            <p class="caption" data-editable="gallery.cap3">Sore itu</p>
+          </div>
+          <div class="polaroid">
+            <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/IMG/922bbe3b-0f9c-462d-be2b-eaf27d0e6aa9.jpg" alt="Memory 4" data-img="gallery.img4" loading="lazy">
+            <p class="caption" data-editable="gallery.cap4">Sempurna</p>
+          </div>
+          <div class="polaroid">
+            <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/IMG/a16ab957-40e6-4cf5-95e3-09ed9c1d756e.jpg" alt="Memory 5" data-img="gallery.img5" loading="lazy">
+            <p class="caption" data-editable="gallery.cap5">Kamu</p>
+          </div>
+          <div class="polaroid">
+            <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/IMG/e25d31d9-e092-49ea-bce2-95ef9ca74de7.jpg" alt="Memory 6" data-img="gallery.img6" loading="lazy">
+            <p class="caption" data-editable="gallery.cap6">Selamanya</p>
+          </div>
+
+          <!-- Slot 7-10 (Kosong, disembunyikan untuk visitor, terlihat untuk Admin) -->
+          <div class="polaroid empty-slot">
+            <img src="empty" alt="Memory 7" data-img="gallery.img7" loading="lazy">
+            <p class="caption" data-editable="gallery.cap7">Tambah Caption...</p>
+          </div>
+          <div class="polaroid empty-slot">
+            <img src="empty" alt="Memory 8" data-img="gallery.img8" loading="lazy">
+            <p class="caption" data-editable="gallery.cap8">Tambah Caption...</p>
+          </div>
+          <div class="polaroid empty-slot">
+            <img src="empty" alt="Memory 9" data-img="gallery.img9" loading="lazy">
+            <p class="caption" data-editable="gallery.cap9">Tambah Caption...</p>
+          </div>
+          <div class="polaroid empty-slot">
+            <img src="empty" alt="Memory 10" data-img="gallery.img10" loading="lazy">
+            <p class="caption" data-editable="gallery.cap10">Tambah Caption...</p>
+          </div>
+
         </div>
-        <div class="gallery-item">
-          <!-- Foto Kedua sudah dipasang link Raw -->
-          <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/a16ab957-40e6-4cf5-95e3-09ed9c1d756e.jpg" alt="Foto 2" id="galleryImg2" data-img="gallery.img2">
-          <p class="caption" data-editable="gallery.cap2">Senyum favoritku</p>
-        </div>
+        <button id="btnNext" class="nav-btn ripple">›</button>
       </div>
+      <p class="hint-text">(Geser untuk melihat)</p>
     </section>
 
     <!-- 4. Permintaan Maaf -->
-    <section class="museum-section">
+    <section class="museum-section page-turn">
       <h2 class="section-title" data-editable="apology.title">Maaf...</h2>
       <p class="section-desc" data-editable="apology.desc">Maaf buat semua momen aku bikin kamu menunggu, dan untuk waktu-waktu di mana aku kurang peka memahamimu.</p>
     </section>
 
     <!-- 5. Alasan Mencintai -->
-    <section class="museum-section">
+    <section class="museum-section page-turn">
       <h2 class="section-title" data-editable="reasons.title">Alasan Mencintaimu</h2>
       <p class="section-desc" data-editable="reasons.desc">Karena kamu selalu punya cara untuk membuat hariku lebih terang, meski hanya lewat pesan singkat dari kejauhan.</p>
     </section>
 
     <!-- 6. Terima Kasih & Replay -->
-    <section class="museum-section">
+    <section class="museum-section page-turn">
+      <div class="heart-icon heartbeat">♡</div>
       <h2 class="section-title" data-editable="thanks.title">Terima Kasih</h2>
       <p class="section-desc" data-editable="thanks.desc">Terima kasih sudah bertahan sejauh ini bersamaku. Museum ini akan selalu menunggu kunjunganmu berikutnya.</p>
-      <button id="btnReplay" class="btn-outline" data-editable="btn.replay" style="margin-top: 32px;">REPLAY</button>
+      <button id="btnReplay" class="btn-outline ripple" data-editable="btn.replay" style="margin-top: 32px;">REPLAY</button>
+      
+      <!-- Easter Egg -->
+      <p class="easter-egg">You reached the end, but not the end of our memories.</p>
     </section>
 
   </main>
 
-  <!-- ==================== UI ADMIN (TOAST & POPUP FOTO) ==================== -->
+  <!-- ==================== UI GALLERY ZOOM ==================== -->
+  <div id="zoomOverlay" class="zoom-overlay hidden">
+    <div class="zoom-content">
+      <img id="zoomImage" src="" alt="Zoomed Memory">
+      <p id="zoomText" class="zoom-caption"></p>
+    </div>
+    <button id="closeZoom" class="btn-close ripple">✕</button>
+  </div>
+
+  <!-- ==================== UI ADMIN (TOAST & POPUP) ==================== -->
   <div id="toast" class="toast hidden">Saving...</div>
 
   <div id="imagePopup" class="popup-overlay hidden">
     <div class="popup-box">
       <h3>Ganti Link Foto</h3>
-      <p>Masukkan link gambar (akhiri dengan .jpg, .png, dsb)</p>
-      <input type="url" id="imgUrlInput" placeholder="https://contoh.com/foto.jpg" autocomplete="off">
+      <p style="margin-bottom: 8px;">(Admin) Kosongkan link untuk menyembunyikan foto.</p>
+      <input type="url" id="imgUrlInput" placeholder="https://..." autocomplete="off">
       <div class="popup-buttons">
-        <button id="btnCancelImg" class="btn-outline">Batal</button>
-        <button id="btnSaveImg" class="btn-outline">Simpan</button>
+        <button id="btnCancelImg" class="btn-outline ripple">Batal</button>
+        <button id="btnSaveImg" class="btn-outline ripple">Simpan</button>
       </div>
     </div>
   </div>
 
-  <!-- Script Module -->
   <script type="module" src="js/firebase.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
