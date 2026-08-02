@@ -2,11 +2,9 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <!-- Mencegah layar HP nge-zoom otomatis saat diklik -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Our Little Museum</title>
   
-  <!-- Font Elegan -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -15,9 +13,9 @@
 </head>
 <body>
 
-  <!-- Audio (Ganti src dengan link lagu pilihanmu nanti) -->
+  <!-- Audio sudah diatur sesuai file yang kamu upload di GitHub -->
   <audio id="bgMusic" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    <source src="Strawberry Guy - Mrs Magic [3dZczoNnFWI].mp3" type="audio/mpeg">
   </audio>
 
   <!-- ==================== HALAMAN PIN ==================== -->
@@ -66,16 +64,18 @@
       <p class="section-desc" data-editable="intro.desc">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu — setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya tidak ada yang hilang.</p>
     </section>
 
-    <!-- 3. Galeri (Hanya 2 Foto) -->
+    <!-- 3. Galeri Foto -->
     <section class="museum-section">
       <h2 class="section-title" data-editable="gallery.title">Galeri Kenangan</h2>
       <div class="gallery-grid">
         <div class="gallery-item">
-          <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600&auto=format&fit=crop" alt="Foto 1" id="galleryImg1" data-img="gallery.img1">
+          <!-- Foto Pertama sudah dipasang link Raw -->
+          <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/73c1094d-712a-4289-b48e-8fa58af0d4a3.jpg" alt="Foto 1" id="galleryImg1" data-img="gallery.img1">
           <p class="caption" data-editable="gallery.cap1">Panggilan video pertama</p>
         </div>
         <div class="gallery-item">
-          <img src="https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=600&auto=format&fit=crop" alt="Foto 2" id="galleryImg2" data-img="gallery.img2">
+          <!-- Foto Kedua sudah dipasang link Raw -->
+          <img src="https://raw.githubusercontent.com/imherewithyou24/Museum/main/a16ab957-40e6-4cf5-95e3-09ed9c1d756e.jpg" alt="Foto 2" id="galleryImg2" data-img="gallery.img2">
           <p class="caption" data-editable="gallery.cap2">Senyum favoritku</p>
         </div>
       </div>
@@ -103,7 +103,6 @@
   </main>
 
   <!-- ==================== UI ADMIN (TOAST & POPUP FOTO) ==================== -->
-  <!-- Hanya muncul dan berfungsi jika login pakai PIN 1937 -->
   <div id="toast" class="toast hidden">Saving...</div>
 
   <div id="imagePopup" class="popup-overlay hidden">
