@@ -1,8 +1,5 @@
 import { saveData } from './firebase.js';
 
-// ==========================================================
-// FUNGSI NOTIFIKASI KECIL (TOAST)
-// ==========================================================
 export function showToast(message, duration = 1500) {
   const toast = document.getElementById('toast');
   if(!toast) return;
@@ -11,27 +8,22 @@ export function showToast(message, duration = 1500) {
   setTimeout(() => toast.classList.add('hidden'), duration);
 }
 
-// ==========================================================
-// INISIALISASI MODE ADMIN
-// ==========================================================
 export function initAdminMode() {
   console.log("🔥 Admin Mode Aktif!");
   document.body.classList.add('admin-mode');
   
-  // 1. INLINE EDITING UNTUK SEMUA TEKS
+  // 1. INLINE TEXT EDITING
   document.body.addEventListener('click', (e) => {
     const target = e.target.closest('[data-editable]');
     if (!target) return;
     
-    e.preventDefault(); // Cegah fungsi asli (misal kalau tombol Replay diklik)
+    e.preventDefault(); 
     if (target.isEditing) return;
 
-    // Mulai Mode Edit
     target.isEditing = true;
     target.contentEditable = "true";
     target.focus();
 
-    // Pindahkan kursor otomatis ke ujung kanan teks
     const range = document.createRange();
     range.selectNodeContents(target);
     range.collapse(false);
@@ -41,7 +33,6 @@ export function initAdminMode() {
 
     const originalText = target.innerText;
 
-    // Fungsi Save Teks
     const finishEdit = async (save) => {
       target.isEditing = false;
       target.contentEditable = "false";
@@ -55,17 +46,15 @@ export function initAdminMode() {
         showToast("Saving...");
         try {
           await saveData(key, newText);
-          showToast("✓ Saved");
+          showToast("Saved ✓");
         } catch (err) {
           showToast("Gagal menyimpan!");
-          console.error("Firebase error:", err);
         }
       } else if (!save) {
-        target.innerText = originalText; // Batal edit, kembalikan teks asli
+        target.innerText = originalText;
       }
     };
 
-    // Deteksi tombol Keyboard (Enter = Save, Escape = Batal)
     const keydownHandler = (evt) => {
       if (evt.key === 'Escape') finishEdit(false);
       if (evt.key === 'Enter' && !evt.shiftKey) {
@@ -74,17 +63,13 @@ export function initAdminMode() {
       }
     };
 
-    // Jika admin mengklik sembarang tempat di luar teks, otomatis tersimpan
     const blurHandler = () => finishEdit(true);
-
     target.addEventListener('keydown', keydownHandler);
     target.addEventListener('blur', blurHandler);
   });
 
-  // ==========================================================
-  // 2. GANTI LINK FOTO MENGGUNAKAN POPUP
-  // ==========================================================
-  const images = document.querySelectorAll('img[data-img]');
+  // 2. IMAGE REPLACEMENT / MANAGER
+  const images = document.querySelectorAll('.polaroid img[data-img]');
   const popup = document.getElementById('imagePopup');
   const urlInput = document.getElementById('imgUrlInput');
   const btnCancel = document.getElementById('btnCancelImg');
@@ -93,34 +78,35 @@ export function initAdminMode() {
   let currentImgKey = null;
   let currentImgEl = null;
 
-  // Pasang fitur klik pada semua foto di galeri
   images.forEach(img => {
-    img.addEventListener('click', () => {
+    img.addEventListener('click', (e) => {
+      e.stopPropagation(); // Mencegah fitur zoom terbuka
       currentImgKey = img.dataset.img;
       currentImgEl = img;
-      urlInput.value = img.src; // Isi input dengan link foto saat ini
+      urlInput.value = img.src.includes('empty') ? '' : img.src; 
       popup.classList.remove('hidden');
       urlInput.focus();
     });
   });
 
-  // Tombol Batal
   btnCancel.addEventListener('click', () => popup.classList.add('hidden'));
 
-  // Tombol Simpan
   btnSave.addEventListener('click', async () => {
     const newUrl = urlInput.value.trim();
-    if (newUrl) {
-      popup.classList.add('hidden');
-      showToast("Saving image...");
-      currentImgEl.src = newUrl; // Ganti gambar langsung di layar admin (biar cepat)
-      try {
-        await saveData(currentImgKey, newUrl);
-        showToast("✓ Image Saved");
-      } catch(err) {
-        showToast("Gagal menyimpan!");
-        console.error("Firebase error:", err);
-      }
+    popup.classList.add('hidden');
+    showToast("Saving...");
+    
+    currentImgEl.src = newUrl || 'empty';
+    if(newUrl) {
+      currentImgEl.closest('.polaroid').classList.remove('empty-slot');
+    }
+
+    try {
+      // Jika di-kosongkan, simpan sebagai string kosong agar hilang di visitor
+      await saveData(currentImgKey, newUrl);
+      showToast("Saved ✓");
+    } catch(err) {
+      showToast("Gagal menyimpan!");
     }
   });
 }
