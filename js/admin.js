@@ -1,80 +1,126 @@
-// ==========================================================
-// admin.js — Creator-only features: Notion-style Inline Edit Mode
-// ==========================================================
-import { setSingleton } from './firebase.js';
-import { $, $all } from './app.js';
+import { saveData } from './firebase.js';
 
-let originalText = "";
+// ==========================================================
+// FUNGSI NOTIFIKASI KECIL (TOAST)
+// ==========================================================
+export function showToast(message, duration = 1500) {
+  const toast = document.getElementById('toast');
+  if(!toast) return;
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), duration);
+}
 
-// Mendengarkan sinyal dari app.js saat PIN Creator dimasukkan
-document.addEventListener('creatorModeActivated', () => {
+// ==========================================================
+// INISIALISASI MODE ADMIN
+// ==========================================================
+export function initAdminMode() {
+  console.log("🔥 Admin Mode Aktif!");
+  document.body.classList.add('admin-mode');
   
-  $all('[data-editable]').forEach(el => {
-    // Buat semua elemen teks bisa diketik
-    el.contentEditable = "true";
+  // 1. INLINE EDITING UNTUK SEMUA TEKS
+  document.body.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-editable]');
+    if (!target) return;
+    
+    e.preventDefault(); // Cegah fungsi asli (misal kalau tombol Replay diklik)
+    if (target.isEditing) return;
 
-    // Simpan teks asli saat mulai diklik (untuk fitur Cancel/Esc)
-    el.addEventListener('focus', (e) => {
-      originalText = e.target.innerText;
-    });
+    // Mulai Mode Edit
+    target.isEditing = true;
+    target.contentEditable = "true";
+    target.focus();
 
-    // Deteksi ketikan keyboard (Enter untuk Save, Esc untuk Batal)
-    el.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // Mencegah enter membuat baris baru
-        e.target.blur();    // Hilangkan kursor
-        await saveEdit(e.target);
-      } 
-      else if (e.key === 'Escape') {
-        e.preventDefault();
-        e.target.innerText = originalText; // Kembalikan ke teks semula
-        e.target.blur();
+    // Pindahkan kursor otomatis ke ujung kanan teks
+    const range = document.createRange();
+    range.selectNodeContents(target);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    const originalText = target.innerText;
+
+    // Fungsi Save Teks
+    const finishEdit = async (save) => {
+      target.isEditing = false;
+      target.contentEditable = "false";
+      target.removeEventListener('keydown', keydownHandler);
+      target.removeEventListener('blur', blurHandler);
+
+      const newText = target.innerText.trim();
+      const key = target.dataset.editable;
+
+      if (save && newText !== originalText) {
+        showToast("Saving...");
+        try {
+          await saveData(key, newText);
+          showToast("✓ Saved");
+        } catch (err) {
+          showToast("Gagal menyimpan!");
+          console.error("Firebase error:", err);
+        }
+      } else if (!save) {
+        target.innerText = originalText; // Batal edit, kembalikan teks asli
       }
+    };
+
+    // Deteksi tombol Keyboard (Enter = Save, Escape = Batal)
+    const keydownHandler = (evt) => {
+      if (evt.key === 'Escape') finishEdit(false);
+      if (evt.key === 'Enter' && !evt.shiftKey) {
+        evt.preventDefault();
+        finishEdit(true); 
+      }
+    };
+
+    // Jika admin mengklik sembarang tempat di luar teks, otomatis tersimpan
+    const blurHandler = () => finishEdit(true);
+
+    target.addEventListener('keydown', keydownHandler);
+    target.addEventListener('blur', blurHandler);
+  });
+
+  // ==========================================================
+  // 2. GANTI LINK FOTO MENGGUNAKAN POPUP
+  // ==========================================================
+  const images = document.querySelectorAll('img[data-img]');
+  const popup = document.getElementById('imagePopup');
+  const urlInput = document.getElementById('imgUrlInput');
+  const btnCancel = document.getElementById('btnCancelImg');
+  const btnSave = document.getElementById('btnSaveImg');
+  
+  let currentImgKey = null;
+  let currentImgEl = null;
+
+  // Pasang fitur klik pada semua foto di galeri
+  images.forEach(img => {
+    img.addEventListener('click', () => {
+      currentImgKey = img.dataset.img;
+      currentImgEl = img;
+      urlInput.value = img.src; // Isi input dengan link foto saat ini
+      popup.classList.remove('hidden');
+      urlInput.focus();
     });
   });
 
-});
+  // Tombol Batal
+  btnCancel.addEventListener('click', () => popup.classList.add('hidden'));
 
-// Fungsi memunculkan notifikasi "Saving..." dan "✓ Saved"
-function flashEditSavePill(text, isError = false) {
-  const pill = $('#editSavePill');
-  pill.textContent = text;
-  pill.style.background = isError ? 'var(--error)' : 'var(--gold)';
-  pill.style.color = isError ? '#fff' : '#0B0A0C';
-  pill.classList.add('visible');
-  
-  // Hilangkan notifikasi setelah 2 detik
-  setTimeout(() => pill.classList.remove('visible'), 2000);
-}
-
-// Fungsi mengirim teks baru ke Firebase
-async function saveEdit(el) {
-  const newValue = el.innerText.trim();
-  const fieldKey = el.dataset.editable;
-  if (!fieldKey) return;
-
-  flashEditSavePill('Saving...');
-
-  try {
-    const parts = fieldKey.split('.');
-    const domain = parts[0];
-
-    // Cek atribut data-editable untuk menentukan lokasi simpan di database
-    if (domain === 'letters') {
-      const type = parts[1]; // misal: 'opening', 'thankyou'
-      await setSingleton('letters', type, { type, content: newValue });
-    } 
-    else if (domain === 'config') {
-      const field = parts[1]; // misal: 'museumName', 'welcomeMsg'
-      await setSingleton('config', 'settings', { [field]: newValue });
-    } 
-    else if (domain === 'museum') {
-      await setSingleton('content', 'site', { [fieldKey]: newValue });
+  // Tombol Simpan
+  btnSave.addEventListener('click', async () => {
+    const newUrl = urlInput.value.trim();
+    if (newUrl) {
+      popup.classList.add('hidden');
+      showToast("Saving image...");
+      currentImgEl.src = newUrl; // Ganti gambar langsung di layar admin (biar cepat)
+      try {
+        await saveData(currentImgKey, newUrl);
+        showToast("✓ Image Saved");
+      } catch(err) {
+        showToast("Gagal menyimpan!");
+        console.error("Firebase error:", err);
+      }
     }
-    
-    flashEditSavePill('✓ Saved');
-  } catch(err) {
-    console.error('Save failed:', err);
-    flashEditSavePill('Gagal menyimpan', true);
-  }
+  });
 }
