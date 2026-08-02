@@ -1,269 +1,125 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Our Little Museum</title>
-
-<!-- ==========================================================
-     FONTS
-     ========================================================== -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<!-- Path CSS disesuaikan ke dalam folder css/ -->
-<link rel="stylesheet" href="./css/style.css">
-
+  <meta charset="UTF-8">
+  <!-- Mencegah layar HP nge-zoom otomatis saat diklik -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Our Little Museum</title>
+  
+  <!-- Font Elegan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- ===== CREATOR BADGE (Hanya muncul saat login PIN Creator) ===== -->
-<div id="creatorBadge" class="hidden" style="position: fixed; top: env(safe-area-inset-top, 16px); right: env(safe-area-inset-right, 16px); z-index: 9999; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; background: rgba(11,10,12,0.8); padding: 8px 12px; border-radius: 100px; border: 1px solid rgba(201,169,106,0.2); backdrop-filter: blur(8px); pointer-events: none; transition: opacity 0.5s ease;">
-  <span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold);"></span>
-  Creator Mode
-</div>
+  <!-- Audio (Ganti src dengan link lagu pilihanmu nanti) -->
+  <audio id="bgMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
 
-<!-- ===== MOUSE GLOW (desktop hover only, respects reduced-motion) ===== -->
-<div id="mouseGlow" aria-hidden="true"></div>
-
-<!-- ===== CINEMATIC HALL-TRANSITION OVERLAY ===== -->
-<div id="transitionOverlay" class="hidden" aria-hidden="true">
-  <div class="transition-spinner"></div>
-  <p id="transitionText">Preparing the next exhibit...</p>
-</div>
-
-<!-- ==========================================================
-     PIN AUTHENTICATION SCREEN
-     ========================================================== -->
-<section id="pinScreen" class="screen">
-  <div class="atmosphere" id="pinAtmosphere">
-    <div class="grain-layer"></div>
-    <div class="light-leak"></div>
-  </div>
-  <p class="pin-eyebrow" data-editable="config.museumName">Our Little Museum</p>
-  <h1 class="pin-title" data-editable="config.pinTitle">Selamat datang.</h1>
-  <p class="pin-subtitle" data-editable="config.welcomeMsg">Museum ini hanya terbuka untuk pengunjung dengan undangan khusus.</p>
-
-  <div class="pin-dots" id="pinDots">
-    <div class="pin-dot"></div>
-    <div class="pin-dot"></div>
-    <div class="pin-dot"></div>
-    <div class="pin-dot"></div>
-  </div>
-  <input type="tel" id="pinRealInput" maxlength="4" inputmode="numeric" autocomplete="off">
-  <p id="pinError"></p>
-  
-  <!-- Tombol Enter pengganti tap-area -->
-  <button id="pinEnterBtn" style="margin-top: 24px; background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; padding: 12px 28px; border-radius: 100px; text-transform: uppercase; transition: all 0.3s ease;">OPEN MUSEUM</button>
-</section>
-
-<!-- ==========================================================
-     CINEMATIC LOADING SCREEN
-     ========================================================== -->
-<section id="loadingScreen" class="screen hidden">
-  <div class="loading-bg-glow"></div>
-  <div class="loading-mark"></div>
-  <p id="loadingText">Checking invitation...</p>
-  <div class="loading-progress"><div class="loading-progress-fill" id="loadingProgressFill"></div></div>
-</section>
-
-<!-- ==========================================================
-     ENVELOPE ANIMATION SCREEN (multi-stage)
-     ========================================================== -->
-<section id="envelopeScreen" class="screen hidden">
-  <div class="envelope-wrap" id="envelopeWrap" data-stage="idle">
-    <div class="envelope-body"></div>
-    <div class="envelope-flap"></div>
-    <div class="wax-seal" id="waxSeal">R</div>
-    <div class="letter-card" id="letterCard">
-      <p id="letterCardText" data-editable="letters.envelope">Untuk kamu, yang selalu sabar menunggu di ujung layar &mdash; selamat datang di museum kecil kita.</p>
-    </div>
-  </div>
-  <p class="envelope-hint" id="envelopeHint" data-editable="museum.envelopeHint">Ketuk amplop untuk membukanya</p>
-</section>
-
-<!-- ==========================================================
-     MUSEUM ENTRANCE (corridor / threshold sequence)
-     ========================================================== -->
-<section id="entranceScreen" class="screen hidden">
-  <div class="corridor">
-    <div class="corridor-glow"></div>
-    <div class="corridor-ring"></div>
-    <div class="corridor-ring"></div>
-    <div class="corridor-ring"></div>
-    <div class="corridor-ring"></div>
-  </div>
-  <p id="entranceText" data-editable="museum.entranceText">Kamu melangkah masuk...</p>
-</section>
-
-<!-- ==========================================================
-     FLOOR PLAN NAVIGATION
-     ========================================================== -->
-<button id="floorPlanToggle" aria-label="Buka denah museum">&#9638;</button>
-<div id="floorPlan">
-  <div class="floor-cell" data-hall="1">01</div>
-  <div class="floor-cell" data-hall="2">02</div>
-  <div class="floor-cell" data-hall="3">03</div>
-  <div class="floor-cell" data-hall="4">04</div>
-  <div class="floor-cell" data-hall="5">05</div>
-  <div class="floor-cell" data-hall="6">06</div>
-</div>
-
-<!-- ==========================================================
-     MUSEUM PROGRESS BAR
-     ========================================================== -->
-<div id="museumProgressWrap" class="hidden">
-  <div class="progress-text">Museum Progress <span id="progressPercent">0%</span></div>
-  <div class="progress-bar-bg"><div class="progress-bar-fill" id="museumProgressBar"></div></div>
-</div>
-
-<!-- ==========================================================
-     HALL NAVIGATION (bottom sticky)
-     ========================================================== -->
-<div id="hallNavigation" class="hidden">
-  <button id="navPrev" class="nav-btn">&larr; Previous</button>
-  <div id="navIndicator">Hall 1 of 6</div>
-  <button id="navNext" class="nav-btn">Next &rarr;</button>
-</div>
-
-<!-- Feedback pill for inline-edit autosave -->
-<div class="edit-save-pill" id="editSavePill">Tersimpan</div>
-
-<!-- ==========================================================
-     MUSEUM (Halls built in Step 2 & 3)
-     ========================================================== -->
-<main id="museum">
-
-  <!-- ===== HALL 1: Why This Museum Exists ===== -->
-  <section class="hall" data-hall="1" id="hall1">
-    <p class="exhibit-label" data-editable="museum.hall1_label">Exhibit No. 01 &middot; Opening Letter</p>
-    <h2 class="hall-title" data-editable="museum.hall1_title">Kenapa Museum Ini Ada</h2>
-    <div class="plaque">
-      <p id="hall1LetterText" data-editable="letters.opening">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu &mdash; setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya nggak ada yang hilang.</p>
-      <p class="plaque-sign" data-editable="museum.hall1_sign">&mdash; disusun dengan sabar, dari jauh</p>
+  <!-- ==================== HALAMAN PIN ==================== -->
+  <section id="pinScreen" class="screen">
+    <div class="pin-container">
+      <h1 class="title" data-editable="pin.title">Selamat datang.</h1>
+      <p class="subtitle" data-editable="pin.subtitle">Museum ini hanya untuk pengunjung khusus.</p>
+      
+      <div class="pin-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      
+      <input type="tel" id="pinInput" maxlength="4" autocomplete="off">
+      <p id="pinError" class="error-text hidden">PIN salah.</p>
+      <button id="btnEnter" class="btn-outline hidden" data-editable="pin.btn">ENTER</button>
+      <p class="hint-text" data-editable="pin.hint">Ketuk untuk memasukkan kode.</p>
     </div>
   </section>
 
-  <!-- ===== HALL 2: Memory Gallery ===== -->
-  <section class="hall" data-hall="2" id="hall2">
-    <p class="exhibit-label" data-editable="museum.hall2_label">Exhibit No. 02 &middot; Memory Gallery</p>
-    <h2 class="hall-title" data-editable="museum.hall2_title">Galeri Kenangan</h2>
-    <p class="curator-note" data-editable="museum.hall2_curator">Setiap bingkai menyimpan satu momen. Sentuh untuk melihatnya lebih dekat.</p>
-    <div class="gallery-grid" id="galleryGrid"><!-- frames injected by JS --></div>
+  <!-- ==================== HALAMAN LOADING ==================== -->
+  <section id="loadingScreen" class="screen hidden">
+    <div class="spinner"></div>
+    <p class="loading-text" data-editable="loading.text">Preparing something special...</p>
   </section>
 
-  <!-- ===== HALL 3: Scrapbook ===== -->
-  <section class="hall" data-hall="3" id="hall3">
-    <p class="exhibit-label" data-editable="museum.hall3_label">Exhibit No. 03 &middot; Scrapbook</p>
-    <h2 class="hall-title" data-editable="museum.hall3_title">Buku Tempel Kita</h2>
-    <p class="curator-note" data-editable="museum.hall3_curator">Potongan-potongan kecil yang nggak muat di galeri, tapi terlalu berharga untuk dilupakan.</p>
-    <div class="scrapbook-canvas" id="scrapbookCanvas"><!-- items injected by JS --></div>
-  </section>
-  
-  <!-- ===== HALL 4: Our Playlist (vinyl) ===== -->
-  <section class="hall" data-hall="4" id="hall4">
-    <p class="exhibit-label" data-editable="museum.hall4_label">Exhibit No. 04 &middot; Our Playlist</p>
-    <h2 class="hall-title" data-editable="museum.hall4_title">Lagu-Lagu Kita</h2>
-    <p class="curator-note" data-editable="museum.hall4_curator">Putar satu piringan, dengar kenapa lagu itu berarti buat kita.</p>
-    <div class="playlist-list" id="playlistList"><!-- tracks injected by JS --></div>
-  </section>
+  <!-- ==================== ISI MUSEUM ==================== -->
+  <main id="museum" class="hidden">
+    
+    <!-- 1. Surat Pembuka -->
+    <section class="museum-section" id="section-letter">
+      <div class="envelope-wrapper" id="envelope">
+        <div class="envelope-body"></div>
+        <div class="envelope-flap"></div>
+        <div class="envelope-seal">R</div>
+        <div class="letter-card">
+          <p class="letter-text" data-editable="letter.content">Untuk kamu, yang selalu sabar menunggu di ujung layar... selamat datang di museum kecil kita.</p>
+        </div>
+      </div>
+      <p class="hint-text envelope-hint" id="envelopeHint" data-editable="letter.hint">Ketuk amplop untuk membuka</p>
+      <div class="scroll-indicator hidden" id="scrollIndicator">↓ Scroll ke bawah</div>
+    </section>
 
-  <!-- ===== HALL 5: Love Letters ===== -->
-  <section class="hall" data-hall="5" id="hall5">
-    <p class="exhibit-label" data-editable="museum.hall5_label">Exhibit No. 05 &middot; Love Letters</p>
-    <h2 class="hall-title" data-editable="museum.hall5_title">Surat-Surat Cinta</h2>
-    <p class="curator-note" data-editable="museum.hall5_curator">Amplop kecil, isinya nggak kecil. Pilih satu untuk dibaca.</p>
-    <div class="mini-envelopes" id="miniEnvelopes"><!-- envelopes injected by JS --></div>
-  </section>
+    <!-- 2. Kenapa Website Ini Dibuat -->
+    <section class="museum-section">
+      <h2 class="section-title" data-editable="intro.title">Kenapa Museum Ini Ada</h2>
+      <p class="section-desc" data-editable="intro.desc">Museum ini bukan tempat menyimpan barang. Ini tempat menyimpan waktu — setiap detik yang kita habiskan bareng meski dipisahkan jarak, aku kumpulkan di sini supaya tidak ada yang hilang.</p>
+    </section>
 
-  <!-- ===== HALL 6: Thank You + Sorry + Final Letter ===== -->
-  <section class="hall" data-hall="6" id="hall6">
-    <p class="exhibit-label" data-editable="museum.hall6_label">Exhibit No. 06 &middot; Penutup</p>
-    <h2 class="hall-title" id="stepperTitle" data-editable="museum.hall6_title">Terima Kasih</h2>
-    <div class="stepper-wrap" id="stepperWrap">
-      <div class="stepper-panel active" data-stage="thanks">
-        <p class="curator-note" id="stepperThanksText" data-editable="letters.thankyou">Makasih udah bertahan sejauh ini bareng aku, walau layar sering jadi satu-satunya jarak yang bisa kita lewatin.</p>
+    <!-- 3. Galeri (Hanya 2 Foto) -->
+    <section class="museum-section">
+      <h2 class="section-title" data-editable="gallery.title">Galeri Kenangan</h2>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600&auto=format&fit=crop" alt="Foto 1" id="galleryImg1" data-img="gallery.img1">
+          <p class="caption" data-editable="gallery.cap1">Panggilan video pertama</p>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=600&auto=format&fit=crop" alt="Foto 2" id="galleryImg2" data-img="gallery.img2">
+          <p class="caption" data-editable="gallery.cap2">Senyum favoritku</p>
+        </div>
       </div>
-      <div class="stepper-panel" data-stage="sorry">
-        <p class="curator-note" id="stepperSorryText" data-editable="letters.sorry">Maaf buat semua momen aku bikin kamu nunggu, dan waktu-waktu aku nggak sesabar yang kamu butuhin.</p>
-      </div>
-      <div class="stepper-panel" data-stage="final">
-        <p class="curator-note" id="stepperFinalText" data-editable="letters.final">Ini bukan akhir dari museum ini &mdash; cuma jeda, sampai kita ketemu dan nambahin koleksi baru bareng-bareng.</p>
-      </div>
-      <div class="stepper-panel" data-stage="quote">
-        <p class="curator-note" id="stepperQuoteText" data-editable="letters.quote">Selamat Girlfriend&rsquo;s Day, sayang. Museum ini akan selalu ada untukmu.</p>
-      </div>
-      <button class="stepper-next" id="stepperNext" data-editable="museum.stepperNextBtn">Lanjutkan</button>
-      <div class="stepper-progress">
-        <div class="stepper-dot active" data-stage="thanks"></div>
-        <div class="stepper-dot" data-stage="sorry"></div>
-        <div class="stepper-dot" data-stage="final"></div>
-        <div class="stepper-dot" data-stage="quote"></div>
+    </section>
+
+    <!-- 4. Permintaan Maaf -->
+    <section class="museum-section">
+      <h2 class="section-title" data-editable="apology.title">Maaf...</h2>
+      <p class="section-desc" data-editable="apology.desc">Maaf buat semua momen aku bikin kamu menunggu, dan untuk waktu-waktu di mana aku kurang peka memahamimu.</p>
+    </section>
+
+    <!-- 5. Alasan Mencintai -->
+    <section class="museum-section">
+      <h2 class="section-title" data-editable="reasons.title">Alasan Mencintaimu</h2>
+      <p class="section-desc" data-editable="reasons.desc">Karena kamu selalu punya cara untuk membuat hariku lebih terang, meski hanya lewat pesan singkat dari kejauhan.</p>
+    </section>
+
+    <!-- 6. Terima Kasih & Replay -->
+    <section class="museum-section">
+      <h2 class="section-title" data-editable="thanks.title">Terima Kasih</h2>
+      <p class="section-desc" data-editable="thanks.desc">Terima kasih sudah bertahan sejauh ini bersamaku. Museum ini akan selalu menunggu kunjunganmu berikutnya.</p>
+      <button id="btnReplay" class="btn-outline" data-editable="btn.replay" style="margin-top: 32px;">REPLAY</button>
+    </section>
+
+  </main>
+
+  <!-- ==================== UI ADMIN (TOAST & POPUP FOTO) ==================== -->
+  <!-- Hanya muncul dan berfungsi jika login pakai PIN 1937 -->
+  <div id="toast" class="toast hidden">Saving...</div>
+
+  <div id="imagePopup" class="popup-overlay hidden">
+    <div class="popup-box">
+      <h3>Ganti Link Foto</h3>
+      <p>Masukkan link gambar (akhiri dengan .jpg, .png, dsb)</p>
+      <input type="url" id="imgUrlInput" placeholder="https://contoh.com/foto.jpg" autocomplete="off">
+      <div class="popup-buttons">
+        <button id="btnCancelImg" class="btn-outline">Batal</button>
+        <button id="btnSaveImg" class="btn-outline">Simpan</button>
       </div>
     </div>
-  </section>
-
-</main>
-
-<!-- ===== LOVE LETTER MODAL (Hall 5) ===== -->
-<div id="letterModal">
-  <div class="letter-modal-card"><p id="letterModalText" data-editable="letters.modalTemp">Isi surat akan muncul di sini</p></div>
-  <button id="letterModalClose" data-editable="museum.modalCloseBtn">Tutup</button>
-</div>
-
-<!-- ===== TRACK PLAYER (Hall 4 audio, separate from ambient bgm) ===== -->
-<audio id="trackPlayer"></audio>
-
-<!-- ===== ENDING SEQUENCE ===== -->
-<section id="endingScreen" class="screen">
-  <div class="lights-off-band" style="top:0;"></div>
-  <div class="lights-off-band" style="top:20%;"></div>
-  <div class="lights-off-band" style="top:40%;"></div>
-  <div class="lights-off-band" style="top:60%;"></div>
-  <div class="lights-off-band" style="top:80%;"></div>
-  <div class="star-field" id="starField"></div>
-  <p id="endingQuote" data-editable="museum.endingQuote">&ldquo;This museum will always wait for its favorite visitor.&rdquo;</p>
-  <button id="visitAgainBtn" data-editable="museum.visitAgainBtn">Visit Again</button>
-</section>
-
-<!-- ===== LIGHTBOX (Hall 2 photo viewer) ===== -->
-<div id="lightbox">
-  <div class="lightbox-photo-wrap"><img id="lightboxImg" src="" alt=""></div>
-  <div class="lightbox-story">
-    <p class="story-meta" id="lightboxMeta" data-editable="museum.lightboxMetaTemp">Momen</p>
-    <p id="lightboxStory" data-editable="museum.lightboxStoryTemp">Cerita foto akan muncul di sini</p>
   </div>
-  <button id="lightboxClose" data-editable="museum.lightboxCloseBtn">Tutup</button>
-</div>
 
-<!-- ==========================================================
-     MINI MUSIC PLAYER
-     ========================================================== -->
-<div id="miniPlayer">
-  <button id="musicToggle" aria-label="Nyalakan/matikan musik">&#9835;</button>
-  <span id="musicLabel" data-editable="museum.musicLabel">MUSIC</span>
-</div>
-<audio id="bgm" loop preload="none">
-  <!-- GANTI src DI BAWAH DENGAN LINK LAGU KALIAN -->
-  <source src="REPLACE_WITH_MP3_URL.mp3" type="audio/mpeg">
-</audio>
-
-<!-- ==========================================================
-     SOUND EFFECTS (hooks only — isi src saat file audio siap)
-     ========================================================== -->
-<audio id="sfxSealCrack" src="REPLACE_WITH_SFX_SEAL_CRACK.mp3" preload="none"></audio>
-<audio id="sfxWaxFall" src="REPLACE_WITH_SFX_WAX_FALL.mp3" preload="none"></audio>
-<audio id="sfxPaper" src="REPLACE_WITH_SFX_PAPER.mp3" preload="none"></audio>
-<audio id="sfxFootstep" src="REPLACE_WITH_SFX_FOOTSTEP.mp3" preload="none"></audio>
-<audio id="sfxAmbience" src="REPLACE_WITH_SFX_AMBIENCE_LOOP.mp3" preload="none" loop></audio>
-
-<!-- ==========================================================
-     SCRIPTS (ES modules)
-     ========================================================== -->
-<!-- Path JS disesuaikan ke dalam folder js/ -->
-<script type="module" src="./js/firebase.js"></script>
-<script type="module" src="./js/app.js"></script>
-<script type="module" src="./js/admin.js"></script>
+  <!-- Script Module -->
+  <script type="module" src="js/firebase.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
